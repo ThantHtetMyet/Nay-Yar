@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PropertyTypes>
+    <PropertyType>
+        <TypeID>PT001</TypeID>
+        <TypeName>House</TypeName>
+        <Description>Standalone residential house</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+    
+    <PropertyType>
+        <TypeID>PT002</TypeID>
+        <TypeName>Apartment</TypeName>
+        <Description>Unit in an apartment building</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+    
+    <PropertyType>
+        <TypeID>PT003</TypeID>
+        <TypeName>Room</TypeName>
+        <Description>Single room for rent or stay</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+    
+    <PropertyType>
+        <TypeID>PT004</TypeID>
+        <TypeName>Building</TypeName>
+        <Description>Whole building for rent or sale</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+    
+    <PropertyType>
+        <TypeID>PT005</TypeID>
+        <TypeName>Studio</TypeName>
+        <Description>Studio unit with combined living space</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+
+    <PropertyType>
+        <TypeID>PT006</TypeID>
+        <TypeName>HDB</TypeName>
+        <Description>HDB unit</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+
+    <PropertyType>
+        <TypeID>PT007</TypeID>
+        <TypeName>Condo</TypeName>
+        <Description>Condo unit</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+</PropertyTypes>

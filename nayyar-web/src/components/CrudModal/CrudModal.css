@@ -1,0 +1,99 @@
+.crud-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.crud-modal-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    width: 90%;
+    max-width: 650px;
+    max-height: 90vh;
+    /* Prevents overflow off screen */
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    /* Crucial for internal scrolling */
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(20px);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.crud-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+    /* Header stays locked */
+}
+
+.crud-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #0f172a;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+.crud-modal-close {
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.crud-modal-close:hover {
+    color: #ef4444;
+}
+
+.crud-modal-body {
+    padding: 25px;
+    overflow-y: auto;
+    /* Internal scrolling for long forms */
+    flex-grow: 1;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Scrollbar for body */
+.crud-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.crud-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 10px 0;
+}
+
+.crud-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PropertyTypes>
+    <PropertyType>
+        <TypeID>RST001</TypeID>
+        <TypeName>Whole Unit</TypeName>
+        <Description>Whole Room</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+
+    <PropertyType>
+        <TypeID>RST002</TypeID>
+        <TypeName>Common Room</TypeName>
+        <Description>Common Room</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+
+    <PropertyType>
+        <TypeID>RST003</TypeID>
+        <TypeName>Master Room</TypeName>
+        <Description>Master Room</Description>
+        <IsActive>true</IsActive>
+    </PropertyType>
+</PropertyTypes>

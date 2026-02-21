@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ListingTypes>
+    <ListingType>
+        <TypeID>LT001</TypeID>
+        <TypeName>For Rent</TypeName>
+        <Description>For Rent</Description>
+        <IsActive>true</IsActive>
+    </ListingType>
+
+    <ListingType>
+        <TypeID>LT002</TypeID>
+        <TypeName>For Sale</TypeName>
+        <Description>For Sale</Description>
+        <IsActive>true</IsActive>
+    </ListingType>
+</ListingTypes>

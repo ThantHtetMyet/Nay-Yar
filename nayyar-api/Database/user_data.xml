@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Users>
+  <User>
+    <ID>b6ea8022-380e-4dcf-8f91-0df33ba45ce1</ID>
+    <UserID>Thant</UserID>
+    <FullName>THANT HTET MYET</FullName>
+    <Email>thanthtetmyet1994@gmail.com</Email>
+    <MobileNo>83816401</MobileNo>
+    <LoginPassword>Phyu@1500</LoginPassword>
+    <Remark>User Registered via API</Remark>
+    <LastLogin>2026-02-21T13:53:29.480Z</LastLogin>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <CreatedDate>2026-02-21T13:53:29.480Z</CreatedDate>
+    <UpdatedDate>2026-02-21T13:53:29.480Z</UpdatedDate>
+  </User>
+</Users>

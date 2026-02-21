@@ -68,9 +68,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
                 return;
             }
 
-            showModal('success', 'Login Successful', `Welcome back, ${data.user.UserID}!`, () => {
-                navigate('/default');
-            });
+            // Navigate instantly upon successful login
+            navigate('/default', { state: { user: data.user } });
 
         } catch (err) {
             setLoading(false);
