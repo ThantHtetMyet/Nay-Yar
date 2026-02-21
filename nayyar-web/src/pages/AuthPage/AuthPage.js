@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import Building3D from '../../components/Building3D';
+import AlertModal from '../../components/AlertModal';
 import './AuthPage.css';
 
 const AuthPage = ({ initialMode = 'login' }) => {
@@ -9,18 +11,27 @@ const AuthPage = ({ initialMode = 'login' }) => {
     // Login State
     const [loginData, setLoginData] = useState({ userID: '', password: '' });
 
-    // Signup State
+    // Signup State (Matching Database Schema)
     const [signupData, setSignupData] = useState({
-        firstName: '',
-        lastName: '',
+        userID: '',
+        fullName: '',
         email: '',
         mobileNo: '',
         loginPassword: '',
         confirmPassword: '',
-        userRoleID: '',
     });
-    const [signupError, setSignupError] = useState('');
-    const [tilt, setTilt] = useState({ x: 0, y: 0 }); // Added for 3D interaction
+
+    // Modal State
+    const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null });
+
+    const closeModal = () => {
+        if (modalConfig.onConfirm) modalConfig.onConfirm();
+        setModalConfig({ ...modalConfig, isOpen: false, onConfirm: null });
+    };
+
+    const showModal = (type, title, message, onConfirm = null) => {
+        setModalConfig({ isOpen: true, type, title, message, onConfirm });
+    };
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -30,67 +41,84 @@ const AuthPage = ({ initialMode = 'login' }) => {
         setIsSignUp(location.pathname === '/signup');
     }, [location.pathname]);
 
-    const roles = [
-        { id: '1', roleName: 'Landlord' },
-        { id: '2', roleName: 'Tenant' },
-    ];
+
 
     // --- Handlers ---
     const handleLoginChange = (e) => setLoginData({ ...loginData, [e.target.name]: e.target.value });
     const handleSignupChange = (e) => {
         setSignupData({ ...signupData, [e.target.name]: e.target.value });
-        setSignupError('');
     };
 
-    const handleMouseMove = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        // Perfecting 3D rotation sensitivity!
-        const rotateX = ((y - centerY) / centerY) * -25;
-        const rotateY = ((x - centerX) / centerX) * 25;
-        setTilt({ x: rotateX, y: rotateY });
-    };
-
-    const handleMouseLeave = () => {
-        setTilt({ x: 0, y: 0 });
-    };
-
-    const handleLoginSubmit = (e) => {
+    const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(() => {
+
+        try {
+            const res = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(loginData)
+            });
+
+            const data = await res.json();
             setLoading(false);
-            alert('Login successful! UserID: ' + loginData.userID);
-            // navigate('/');
-        }, 1000);
+
+            if (!res.ok) {
+                showModal('error', 'Login Failed', data.error || 'Invalid credentials.');
+                return;
+            }
+
+            showModal('success', 'Login Successful', `Welcome back, ${data.user.UserID}!`, () => {
+                navigate('/default');
+            });
+
+        } catch (err) {
+            setLoading(false);
+            showModal('error', 'Connection Error', 'Could not connect to the backend server.');
+        }
     };
 
-    const handleSignupSubmit = (e) => {
+    const handleSignupSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setSignupError('');
 
         if (signupData.loginPassword !== signupData.confirmPassword) {
-            setSignupError('Passwords do not match');
             setLoading(false);
+            showModal('error', 'Validation Error', 'Passwords do not match. Please verify your password.');
             return;
         }
 
         if (signupData.loginPassword.length < 6) {
-            setSignupError('Password must be at least 6 characters long');
             setLoading(false);
+            showModal('error', 'Weak Password', 'For your security, your password must be at least 6 characters long.');
             return;
         }
 
-        setTimeout(() => {
+        try {
+            const res = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(signupData)
+            });
+
+            const data = await res.json();
             setLoading(false);
-            alert('Account created successfully! Please login.');
-            setIsSignUp(false);
-            navigate('/');
-        }, 1500);
+
+            if (!res.ok) {
+                // Determine if it was a Conflict (409) or general error
+                const type = res.status === 409 ? 'warning' : 'error';
+                showModal(type, res.status === 409 ? 'Account Exists' : 'Registration Failed', data.message || data.error);
+                return;
+            }
+
+            showModal('success', 'Account Created', 'Your account has been successfully created! You can now log in.', () => {
+                setIsSignUp(false); // Switch to login view
+            });
+
+        } catch (err) {
+            setLoading(false);
+            showModal('error', 'Connection Error', 'Could not connect to the backend server.');
+        }
     };
 
     // --- Template ---
@@ -105,16 +133,14 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     <form className="auth-form" onSubmit={handleSignupSubmit} autoComplete="off">
                         <h1 className="auth-title">Create Account</h1>
 
-                        {signupError && <div className="alert-text">{signupError}</div>}
-
                         <div className="auth-form-row">
                             <div className="auth-form-group">
-                                <input className="auth-input" type="text" name="firstName" placeholder=" " value={signupData.firstName} onChange={handleSignupChange} required />
-                                <label className="auth-label">First Name</label>
+                                <input className="auth-input" type="text" name="userID" placeholder=" " value={signupData.userID} onChange={handleSignupChange} required />
+                                <label className="auth-label">UserID</label>
                             </div>
                             <div className="auth-form-group">
-                                <input className="auth-input" type="text" name="lastName" placeholder=" " value={signupData.lastName} onChange={handleSignupChange} required />
-                                <label className="auth-label">Last Name</label>
+                                <input className="auth-input" type="text" name="fullName" placeholder=" " value={signupData.fullName} onChange={handleSignupChange} required />
+                                <label className="auth-label">Full Name</label>
                             </div>
                         </div>
 
@@ -123,18 +149,9 @@ const AuthPage = ({ initialMode = 'login' }) => {
                             <label className="auth-label">Email</label>
                         </div>
 
-                        <div className="auth-form-row">
-                            <div className="auth-form-group">
-                                <input className="auth-input" type="tel" name="mobileNo" placeholder=" " value={signupData.mobileNo} onChange={handleSignupChange} required />
-                                <label className="auth-label">Mobile No</label>
-                            </div>
-                            <div className="auth-form-group">
-                                <select className="auth-select" name="userRoleID" value={signupData.userRoleID} onChange={handleSignupChange} required>
-                                    <option value="" disabled hidden></option>
-                                    {roles.map(r => <option key={r.id} value={r.id}>{r.roleName}</option>)}
-                                </select>
-                                <label className="auth-label">Role</label>
-                            </div>
+                        <div className="auth-form-group">
+                            <input className="auth-input" type="tel" name="mobileNo" placeholder=" " value={signupData.mobileNo} onChange={handleSignupChange} required />
+                            <label className="auth-label">Mobile No</label>
                         </div>
 
                         <div className="auth-form-group">
@@ -197,36 +214,10 @@ const AuthPage = ({ initialMode = 'login' }) => {
                         </div>
 
                         {/* Overlay Right Content (Visible when Sign In active) */}
-                        <div
-                            className="auth-overlay-panel auth-overlay-right"
-                            onMouseMove={handleMouseMove}
-                            onMouseLeave={handleMouseLeave}
-                            style={{ perspective: '1200px' }}
-                        >
-                            <div
-                                className="floating-container"
-                                style={{
-                                    transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                                    transition: tilt.x === 0 && tilt.y === 0 ? 'transform 0.5s ease-out' : 'transform 0.1s ease-out',
-                                    transformStyle: 'preserve-3d',
-                                    width: '100%',
-                                    display: 'flex',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <img
-                                    src={require('../../assets/new_cute_3d_house_transparent.png')}
-                                    alt="Cute 3D House"
-                                    className="overlay-graphic"
-                                    style={{
-                                        transform: tilt.x !== 0 || tilt.y !== 0 ? 'translateZ(50px) scale(1.1)' : 'translateZ(0) scale(1)',
-                                        transition: 'transform 0.2s ease-out',
-                                        filter: tilt.x !== 0 || tilt.y !== 0 ? `drop-shadow(${-tilt.y}px ${-tilt.x}px 25px rgba(0,0,0,0.5))` : 'drop-shadow(0 15px 25px rgba(0, 0, 0, 0.3))'
-                                    }}
-                                />
-                            </div>
-                            <h1 className="auth-title" style={{ transform: 'translateZ(20px)', zIndex: 5 }}>Hello, Friend!</h1>
-                            <p className="auth-text" style={{ transform: 'translateZ(10px)', zIndex: 5 }}>Nay-Yar is for everyone.</p>
+                        <div className="auth-overlay-panel auth-overlay-right">
+                            <Building3D />
+                            <h1 className="auth-title">Hello, Friend!</h1>
+                            <p className="auth-text">Nay-Yar is for everyone.</p>
                         </div>
                     </div>
                 </div>
@@ -240,6 +231,14 @@ const AuthPage = ({ initialMode = 'login' }) => {
                 }
                 `}
             </style>
+
+            <AlertModal
+                isOpen={modalConfig.isOpen}
+                type={modalConfig.type}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                onClose={closeModal}
+            />
         </div>
     );
 };

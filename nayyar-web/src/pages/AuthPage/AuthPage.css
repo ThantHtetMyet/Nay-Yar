@@ -119,10 +119,9 @@ a.auth-link:hover::after {
     background-color: transparent !important;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     flex-direction: column;
-    padding: 40px 40px 0 40px;
-    /* Reduced for better fit */
+    padding: 0 30px;
     height: 100%;
     text-align: center;
     color: var(--clr-text);
@@ -134,11 +133,30 @@ a.auth-link:hover::after {
     width: 100%;
 }
 
+.auth-form-container {
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Form Container */
+.auth-form-container::-webkit-scrollbar {
+    width: 0px;
+}
+
+.auth-form-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.auth-form-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
 /* Floating Label Logic */
 .auth-form-group {
     position: relative;
     width: 100%;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
 }
 
 .auth-input,
@@ -146,7 +164,7 @@ a.auth-link:hover::after {
     background-color: var(--clr-surface2);
     border: 1px solid var(--clr-border);
     color: var(--clr-text);
-    padding: 0.6rem 0.75rem;
+    padding: 0.45rem 0.6rem;
     margin: 0;
     width: 100%;
     border-radius: 0.5rem;
@@ -222,9 +240,8 @@ a.auth-link:hover::after {
     overflow: hidden;
     width: 800px;
     max-width: 95vw;
-    height: 440px;
-    /* Highly compressed to eliminate blank space */
-    min-height: 440px;
+    height: 520px;
+    min-height: 520px;
     z-index: 10;
 }
 
