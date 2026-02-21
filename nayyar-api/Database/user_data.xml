@@ -14,4 +14,18 @@
     <CreatedDate>2026-02-21T13:53:29.480Z</CreatedDate>
     <UpdatedDate>2026-02-21T13:53:29.480Z</UpdatedDate>
   </User>
+  <User>
+    <ID>b5417302-8806-4579-9b28-b5526c8f566a</ID>
+    <UserID>Phyu</UserID>
+    <FullName>Aye Moe Phyu</FullName>
+    <Email>aye@gmail.com</Email>
+    <MobileNo>81384983</MobileNo>
+    <LoginPassword>Willow@123</LoginPassword>
+    <Remark>User Registered via API</Remark>
+    <LastLogin>2026-02-21T19:40:43.537Z</LastLogin>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <CreatedDate>2026-02-21T19:40:43.537Z</CreatedDate>
+    <UpdatedDate>2026-02-21T19:40:43.537Z</UpdatedDate>
+  </User>
 </Users>

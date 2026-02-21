@@ -97,3 +97,23 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 600px) {
+    .crud-modal-card {
+        width: 95%;
+        border-radius: 16px;
+    }
+
+    .crud-modal-header {
+        padding: 15px;
+    }
+
+    .crud-modal-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .crud-modal-body {
+        padding: 15px;
+    }
+}

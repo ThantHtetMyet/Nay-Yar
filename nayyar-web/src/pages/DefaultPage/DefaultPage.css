@@ -255,6 +255,7 @@
     font-size: 1.8rem;
     font-weight: 800;
     background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
@@ -321,28 +322,166 @@
     box-shadow: 0 4px 10px rgba(255, 126, 95, 0.3);
 }
 
-/* --- GOOGLE MAP WRAPPER --- */
+/* --- LEAFLET MAP WRAPPER --- */
 .map-container {
     flex: 1;
     position: relative;
+    min-height: 0;
+    /* let flexbox compute height properly */
     background: #e2e8f0;
 }
 
-.live-map-frame {
-    width: 100%;
-    height: 100%;
-    animation: fadeIn 0.8s ease-in-out;
-}
-
-.map-placeholder {
-    width: 100%;
-    height: 100%;
+/* ── Property map pin ──────────────────────────────────────── */
+.prop-pin {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #94a3b8;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.prop-pin:hover {
+    transform: rotate(-45deg) scale(1.18);
+    box-shadow: 0 6px 22px rgba(255, 126, 95, 0.55);
+}
+
+.prop-pin-emoji {
+    transform: rotate(45deg);
+    font-size: 18px;
+    line-height: 1;
+    user-select: none;
+}
+
+/* ── Leaflet popup overrides ───────────────────────────────── */
+.prop-popup .leaflet-popup-content-wrapper {
+    border-radius: 14px;
+    padding: 0;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+.prop-popup .leaflet-popup-content {
+    margin: 0;
+    width: auto !important;
+}
+
+.prop-popup .leaflet-popup-tip-container {
+    margin-top: -1px;
+}
+
+.prop-popup-card {
+    padding: 14px 16px 12px;
+    min-width: 220px;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ── Popup header: badge + property type ──────────────────── */
+.prop-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.prop-popup-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+
+.prop-popup-badge.rent {
+    background: rgba(255, 126, 95, 0.12);
+    color: #c2390a;
+    border: 1px solid rgba(255, 126, 95, 0.35);
+}
+
+.prop-popup-badge.sale {
+    background: rgba(16, 185, 129, 0.12);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.prop-popup-proptype {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* ── Room list inside popup ────────────────────────────────── */
+.prop-popup-rooms {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: rgba(248, 250, 252, 0.9);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.prop-popup-room-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.prop-popup-room-label {
+    font-size: 0.78rem;
+    color: #64748b;
     font-weight: 500;
-    font-size: 1.2rem;
+}
+
+.prop-popup-room-price {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ff7e5f;
+    white-space: nowrap;
+}
+
+/* ── Single price (non-room listing) ──────────────────────── */
+.prop-popup-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ff7e5f;
+    margin-bottom: 6px;
+}
+
+.prop-popup-addr {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-bottom: 10px;
+    line-height: 1.45;
+}
+
+.prop-popup-btn {
+    width: 100%;
+    padding: 8px 0;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.84rem;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.prop-popup-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
 }
 
 /* Animations */
@@ -365,5 +504,153 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 0 15px;
+        height: 70px;
+    }
+
+    .header-brand {
+        font-size: 1.4rem;
+        flex: auto;
+    }
+
+    .header-menu {
+        gap: 10px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .menu-item-group {
+        padding: 6px;
+        gap: 6px;
+    }
+
+    .menu-label {
+        font-size: 0.85rem;
+    }
+
+    .header-user {
+        gap: 10px;
+        flex: auto;
+    }
+
+    .user-name {
+        display: none;
+        /* Hide the full text name automatically on phones to preserve space */
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .country-modal-card {
+        padding: 25px 20px;
+        /* Reduce padding on Gateway Modal to buy more horizontal space */
+        width: 95%;
+    }
+}
+
+/* --- SUPER MOBILE (App-bar style) --- */
+@media (max-width: 600px) {
+    .menu-label {
+        display: none;
+        /* Strip text labels entirely, leaving only the beautiful Glass Icons */
+    }
+}
+
+/* ── Logout Confirmation View ────────────────────────────── */
+.logout-confirm-view {
+    text-align: center;
+    padding: 20px 10px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.logout-icon-large {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: wave 1.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(15deg);
+    }
+}
+
+.logout-confirm-view h3 {
+    font-size: 1.5rem;
+    color: #1e293b;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.logout-confirm-view p {
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+.logout-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.logout-btn-no,
+.logout-btn-yes {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.logout-btn-no {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.logout-btn-no:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.logout-btn-yes {
+    background: #ef4444;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.logout-btn-yes:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+}
+
+@media (max-width: 480px) {
+    .logout-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .logout-btn-no,
+    .logout-btn-yes {
+        width: 100%;
     }
 }

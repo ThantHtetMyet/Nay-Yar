@@ -19,6 +19,12 @@ const GlassIcon = ({ type }) => {
                         <div className="search-handle"></div>
                     </div>
                 )}
+                {type === 'logout' && (
+                    <div className="icon-vector logout-vector">
+                        <div className="logout-door"></div>
+                        <div className="logout-arrow"></div>
+                    </div>
+                )}
             </div>
         </div>
     );

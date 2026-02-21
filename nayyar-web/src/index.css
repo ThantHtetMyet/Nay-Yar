@@ -9,6 +9,8 @@
   --clr-surface2: #f9fafb;
   --clr-border: #e5e7eb;
   /* Reusing orange var names to avoid widespread refactoring, but setting to Bright Blue/Green */
+  --clr-blue: #6366f1;
+  /* Indigo — used by PropertyDetail badges, buttons, section titles */
   --clr-orange: #0088ff;
   /* Primary Blue */
   --clr-orange-d: #0072ff;

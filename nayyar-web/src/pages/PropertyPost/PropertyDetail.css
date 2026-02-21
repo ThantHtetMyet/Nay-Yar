@@ -1,0 +1,419 @@
+.property-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ── Compact Header Layout ───────────────────────────── */
+.pd-header-compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 16px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.pd-center-titles {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 0;
+}
+
+.pd-type-badge {
+    background: var(--clr-blue);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pd-listing-badge {
+    background: rgba(99, 102, 241, 0.08);
+    color: #3730a3;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ── Icon Action Buttons ─────────────────────────────── */
+.pd-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+.pd-icon-btn:hover {
+    background: #f8fafc;
+    border-color: var(--clr-blue);
+    color: var(--clr-blue);
+    transform: translateY(-1px);
+}
+
+.pd-icon-btn.back {
+    color: #1e293b;
+    border-color: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.pd-icon-btn.edit:hover {
+    color: var(--clr-blue);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.pd-icon-btn.delete:hover {
+    color: #ef4444;
+    border-color: #fca5a5;
+    background: #fef2f2;
+}
+
+.pd-right-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pd-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── WhatsApp CTA (Property Place) ───────────────────── */
+.pd-whatsapp-cta {
+    margin-bottom: 16px;
+}
+
+.pd-btn.whatsapp-full {
+    width: 100%;
+    background: #25d366;
+    color: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+    transition: all 0.2s ease;
+}
+
+.pd-btn.whatsapp-full:hover {
+    background: #20ba59;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+/* ── Sections ────────────────────────────────────────────── */
+.pd-section {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+}
+
+.pd-section-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--clr-blue);
+    margin: 0 0 10px 0;
+}
+
+.pd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    font-size: 0.875rem;
+}
+
+.pd-row:last-child {
+    border-bottom: none;
+}
+
+.pd-label {
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+.pd-value {
+    color: #1e293b;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* ── Room cards ──────────────────────────────────────────── */
+.pd-room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pd-room-card {
+    background: #ffffff;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-left: 6px solid #6366f1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.pd-room-header {
+    background: rgba(99, 102, 241, 0.08);
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Room label badge inside the card header */
+.room-price-badge {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #3730a3;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 8px;
+    padding: 2px 10px;
+}
+
+.pd-room-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.pd-room-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    gap: 12px;
+}
+
+.pd-room-row:last-child {
+    border-bottom: none;
+}
+
+.pd-room-row span {
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.pd-room-row strong {
+    color: #1e293b;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* ── Meta / loading ──────────────────────────────────────── */
+.pd-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-align: center;
+    padding-top: 8px;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.pd-loading,
+.pd-error {
+    padding: 40px;
+    text-align: center;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.pd-error {
+    color: #ef4444;
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .pd-header-compact {
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+    }
+
+    .pd-center-titles {
+        gap: 6px;
+    }
+
+    .pd-type-badge,
+    .pd-listing-badge {
+        font-size: 0.72rem;
+        padding: 3px 10px;
+    }
+
+    .pd-icon-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .pd-row {
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px 0;
+    }
+
+    .pd-value {
+        text-align: left;
+    }
+
+    .pd-btn.whatsapp-full {
+        font-size: 0.95rem;
+        padding: 14px;
+    }
+}
+
+/* ── WhatsApp Integration ────────────────────────────────── */
+.pd-btn.whatsapp {
+    background: #25d366;
+    /* WhatsApp Green */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+}
+
+.pd-btn.whatsapp:hover {
+    background: #20ba59;
+    transform: translateY(-1px);
+}
+
+.pd-wa-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.pd-wa-picker {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pd-wa-picker h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+}
+
+.pd-wa-picker p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0 0 20px 0;
+}
+
+.pd-wa-room-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.wa-room-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.wa-room-option:hover {
+    background: #fff;
+    border-color: #25d366;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.1);
+    transform: translateX(4px);
+}
+
+.wa-room-label {
+    font-weight: 700;
+    color: #334155;
+}
+
+.wa-room-price {
+    font-weight: 800;
+    color: #25d366;
+}
+
+.pd-wa-cancel {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.pd-wa-cancel:hover {
+    color: #64748b;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

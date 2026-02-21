@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PropertyListings>
+  <PropertyListing>
+    <PropertyID>575cbb5b-0873-449a-8197-57d32a7f4fc0</PropertyID>
+    <PropertyType>PT003</PropertyType>
+    <ListingType>LT001</ListingType>
+    <PropertySubType>[{"SubTypeID":"RST003","Label":"Master Room","Price":"899","PubIncluded":true,"RentalBasis":"Shared","TotalBeds":2,"BedsForRent":1,"GenderPref":"Female","RegistrationProvided":true,"Remark":"at least 6 months"},{"SubTypeID":"RST002","Label":"Common Room #1","Price":"1399","PubIncluded":true,"RentalBasis":"Whole","TotalBeds":2,"BedsForRent":1,"GenderPref":"Male","RegistrationProvided":true,"Remark":"at least 6 months"},{"SubTypeID":"RST002","Label":"Common Room #2","Price":"1500","PubIncluded":true,"RentalBasis":"Whole","TotalBeds":2,"BedsForRent":1,"GenderPref":"Female","RegistrationProvided":true,"Remark":"at least 6 months"}]</PropertySubType>
+    <Price>0</Price>
+    <RentTerm>Per Month</RentTerm>
+    <Currency>SGD</Currency>
+    <Country>Singapore</Country>
+    <City>Singapore</City>
+    <Address>Blk 161, #06-65, Hougang Street 11</Address>
+    <PostalCode>530161</PostalCode>
+    <Bedrooms/>
+    <Bathrooms/>
+    <AreaSize/>
+    <AvailableFrom>2026-02-26</AvailableFrom>
+    <ContactPhone>83816401</ContactPhone>
+    <ContactEmail>thanthtetmyet1994@gmail.com</ContactEmail>
+    <GenderPreference>Any</GenderPreference>
+    <Description>Test</Description>
+    <Remark/>
+    <CreatedBy>Thant</CreatedBy>
+    <CreatedDate>2026-02-21T18:46:27.558Z</CreatedDate>
+    <UpdatedDate/>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+  </PropertyListing>
+  <PropertyListing>
+    <PropertyID>8046e59c-8e34-4e3f-9895-f1558f51a5b0</PropertyID>
+    <PropertyType>PT003</PropertyType>
+    <ListingType>LT001</ListingType>
+    <PropertySubType>[{"SubTypeID":"RST002","Label":"Common Room","Price":"800","PubIncluded":true,"RentalBasis":"Shared","TotalBeds":2,"BedsForRent":1,"GenderPref":"Male","RegistrationProvided":true,"Remark":""},{"SubTypeID":"RST003","Label":"Master Room","Price":"900","PubIncluded":true,"RentalBasis":"Shared","TotalBeds":2,"BedsForRent":1,"GenderPref":"Female","RegistrationProvided":true,"Remark":""}]</PropertySubType>
+    <Price>0</Price>
+    <RentTerm>Per Month</RentTerm>
+    <Currency>SGD</Currency>
+    <Country>Singapore</Country>
+    <City>Singapore</City>
+    <Address>18 Neythal Rd,  </Address>
+    <PostalCode>628583</PostalCode>
+    <Bedrooms/>
+    <Bathrooms/>
+    <AreaSize/>
+    <AvailableFrom>2026-03-01</AvailableFrom>
+    <ContactPhone>84948944, 94857482</ContactPhone>
+    <ContactEmail>aye@gmail.com</ContactEmail>
+    <GenderPreference>Any</GenderPreference>
+    <Description/>
+    <Remark/>
+    <CreatedBy>Phyu</CreatedBy>
+    <CreatedDate>2026-02-21T19:43:04.030Z</CreatedDate>
+    <UpdatedDate>2026-02-21T19:59:26.339Z</UpdatedDate>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+  </PropertyListing>
+</PropertyListings>

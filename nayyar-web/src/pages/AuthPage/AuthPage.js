@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Building3D from '../../components/Building3D';
 import AlertModal from '../../components/AlertModal';
 import './AuthPage.css';
+import { loginRaw, signupRaw } from '../../services/api';
 
 const AuthPage = ({ initialMode = 'login' }) => {
     const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
@@ -54,19 +55,16 @@ const AuthPage = ({ initialMode = 'login' }) => {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:5000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(loginData)
-            });
-
-            const data = await res.json();
+            const { res, data } = await loginRaw(loginData);
             setLoading(false);
 
             if (!res.ok) {
                 showModal('error', 'Login Failed', data.error || 'Invalid credentials.');
                 return;
             }
+
+            // Store user in session so it survives refreshes
+            sessionStorage.setItem('user', JSON.stringify(data.user));
 
             // Navigate instantly upon successful login
             navigate('/default', { state: { user: data.user } });
@@ -94,13 +92,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
         }
 
         try {
-            const res = await fetch('http://localhost:5000/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(signupData)
-            });
-
-            const data = await res.json();
+            const { res, data } = await signupRaw(signupData);
             setLoading(false);
 
             if (!res.ok) {

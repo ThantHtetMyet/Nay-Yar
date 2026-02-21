@@ -54,6 +54,11 @@
     /* Blue */
 }
 
+.logout .glass-base {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    /* Red */
+}
+
 /* Vector Drawings inside the Frosted layer */
 .create-vector {
     display: flex;
@@ -104,4 +109,44 @@
     right: 1px;
     transform: rotate(-45deg);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.logout-vector {
+    position: relative;
+    width: 18px;
+    height: 18px;
+}
+
+.logout-door {
+    position: absolute;
+    width: 10px;
+    height: 14px;
+    border: 3px solid #ffffff;
+    border-right: none;
+    top: 2px;
+    left: 1px;
+    border-radius: 2px 0 0 2px;
+}
+
+.logout-arrow {
+    position: absolute;
+    width: 8px;
+    height: 3px;
+    background: #ffffff;
+    right: 0px;
+    top: 7px;
+    border-radius: 2px;
+}
+
+.logout-arrow::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-top: 3px solid #ffffff;
+    border-right: 3px solid #ffffff;
+    transform: rotate(45deg);
+    right: 0;
+    top: -4px;
+    border-radius: 1px;
 }

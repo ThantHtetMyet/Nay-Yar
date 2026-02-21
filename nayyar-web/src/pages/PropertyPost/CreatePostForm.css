@@ -1,0 +1,830 @@
+.create-post-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* === STEP INDICATOR (replaces tab header) === */
+.step-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.step-meta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-count {
+    position: absolute;
+    right: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.step-title {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+    /* Highlight pen effect */
+    background: linear-gradient(120deg, #FFE066 0%, #FFD700 100%);
+    padding: 2px 10px 3px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.step-progress-bar {
+    height: 4px;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.step-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--clr-orange), var(--clr-pink));
+    border-radius: 99px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* === TAB HEADER === */
+.tab-header {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.tab-header::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1.5px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    background: transparent;
+    color: #64748b;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.tab-btn:hover {
+    background: rgba(59, 130, 246, 0.06);
+    border-color: var(--clr-blue);
+    color: var(--clr-blue);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--clr-orange), var(--clr-pink));
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+}
+
+.tab-btn.done {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #16a34a;
+}
+
+.tab-num {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tab-btn.done .tab-num::before {
+    content: '✓';
+}
+
+.tab-btn.done .tab-num {
+    font-size: 0;
+}
+
+.tab-btn.done .tab-num::before {
+    font-size: 0.75rem;
+}
+
+.tab-section-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--clr-blue);
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.15);
+}
+
+.tab-content {
+    animation: fadeInSlide 0.25s ease forwards;
+}
+
+
+.form-section {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: var(--clr-blue);
+    font-weight: 700;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+    padding-bottom: 8px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    /* Prevents flex children from overflowing their container */
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    padding: 10px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+/* Make triple columns slightly more compact */
+.form-row.triple {
+    overflow: hidden;
+}
+
+.form-row.triple .input-group input {
+    padding: 10px 8px;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    border-color: var(--clr-orange);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.15);
+}
+
+.input-group textarea {
+    resize: vertical;
+}
+
+/* Beautiful highlight on the dynamically rendered subtype */
+.subtype-row {
+    animation: fadeInSlide 0.3s ease forwards;
+}
+
+.subtype-row .input-group select {
+    border-color: var(--clr-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- DYNAMIC ROOM ENTRIES BUILDER --- */
+.room-entries-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.room-entries-label {
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.room-entry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeInSlide 0.2s ease forwards;
+}
+
+.room-entry-row .input-group {
+    flex: 1;
+}
+
+.room-entry-row .input-group.room-qty {
+    flex: 0 0 80px;
+    /* Fixed compact width for quantity */
+}
+
+.room-entry-row .input-group.room-qty input {
+    text-align: center;
+}
+
+.room-remove-btn {
+    background: none;
+    border: 1px solid #fca5a5;
+    color: #ef4444;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.room-remove-btn:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
+.room-add-btn {
+    align-self: flex-start;
+    background: none;
+    border: 1.5px dashed rgba(59, 130, 246, 0.4);
+    color: var(--clr-blue);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 4px;
+}
+
+.room-col-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.room-col-qty {
+    flex: 0 0 60px;
+}
+
+.room-col-price {
+    flex: 0 0 120px;
+}
+
+.room-col-remove {
+    flex: 0 0 36px;
+}
+
+.room-header-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 0 6px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    margin-bottom: 8px;
+}
+
+.room-entry-row .input-group.room-price {
+    flex: 0 0 120px;
+}
+
+/* === REVIEW TAB === */
+.review-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.review-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.review-category {
+    margin: 0 0 4px 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--clr-orange);
+}
+
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.review-row span {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.review-row strong {
+    font-size: 0.9rem;
+    color: #0f172a;
+    font-weight: 700;
+    text-align: right;
+    max-width: 60%;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid #94a3b8;
+    color: #475569;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: rgba(148, 163, 184, 0.1);
+    color: #0f172a;
+}
+
+.btn-submit {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--clr-orange), var(--clr-pink));
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
+}
+
+/* Override ghost button for light modal background */
+.create-post-form .auth-button.ghost {
+    border-color: #94a3b8;
+    color: #475569;
+    background: transparent;
+    box-shadow: none;
+}
+
+.create-post-form .auth-button.ghost:hover {
+    background: rgba(148, 163, 184, 0.1);
+    border-color: #64748b;
+    color: #0f172a;
+    box-shadow: none;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+    font-weight: 600;
+    font-style: italic;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* === PRICING TAB — PER-ROOM PRICE ROWS === */
+.room-price-hint {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin: 0 0 12px 0;
+}
+
+.room-price-entry {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 6px solid #6366f1;
+    /* Left accent indigo */
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    animation: fadeInSlide 0.3s ease forwards;
+}
+
+.room-card-header {
+    background: #f8fafc;
+    padding: 12px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.room-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+}
+
+.room-card-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.room-price-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.room-price-badge {
+    background: rgba(99, 102, 241, 0.12);
+    color: #3730a3;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Gender preference section in Logistics tab */
+.gender-pref-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    margin-bottom: 4px;
+}
+
+.room-remark-group {
+    margin-top: 25px !important;
+}
+
+.room-price-qty {
+
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Live bed count summary chip */
+.bed-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 0.82rem;
+    color: #1e40af;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.bed-summary-chip strong {
+    color: #1d4ed8;
+    font-weight: 800;
+}
+
+
+/* === RENTAL BASIS TOGGLE PILLS === */
+.rental-basis-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.rental-basis-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.rental-basis-pills {
+    display: flex;
+    gap: 8px;
+}
+
+.basis-pill {
+    flex: 1;
+    padding: 9px 10px;
+    border: 1.5px solid rgba(148, 163, 184, 0.4);
+    border-radius: 10px;
+    background: transparent;
+    color: #64748b;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.basis-pill:hover {
+    border-color: var(--clr-orange);
+    color: var(--clr-orange);
+    background: rgba(255, 126, 95, 0.05);
+}
+
+.basis-pill.active {
+    background: rgba(255, 126, 95, 0.12);
+    border-color: var(--clr-orange);
+    border-width: 2px;
+    color: #c2410c;
+    box-shadow: 0 2px 8px rgba(255, 126, 95, 0.2);
+}
+
+/* PUB Toggle Row */
+.pub-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.pub-toggle-row label {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pub-toggle-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--clr-blue);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.pub-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-left: 2px;
+}
+
+/* === PHYSICAL DETAILS — NOT APPLICABLE CARD === */
+.not-applicable-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 20px !important;
+    text-align: center;
+    border: 2px dashed rgba(148, 163, 184, 0.3);
+    background: rgba(248, 250, 252, 0.6) !important;
+}
+
+.na-icon {
+    font-size: 2.5rem;
+}
+
+.na-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.na-subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+
+
+/* === REVIEW — ROOM CARDS === */
+.review-rooms {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.review-room-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #6366f1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+}
+
+.review-room-header {
+    background: #f8fafc;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.review-room-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-room-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    gap: 12px;
+}
+
+.review-room-row:last-child {
+    border-bottom: none;
+}
+
+.review-room-row span {
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.review-room-row strong {
+    color: #1e293b;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* Multi-phone styles */
+.multi-phone-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.phone-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.phone-input-row input {
+    flex: 1;
+}
+
+.remove-phone-btn {
+    background: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.remove-phone-btn:hover {
+    background: #fecaca;
+    transform: scale(1.05);
+}
+
+.add-phone-btn {
+    background: transparent;
+    color: var(--clr-blue);
+    border: 1px dashed var(--clr-blue);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+}
+
+.add-phone-btn:hover {
+    background: rgba(99, 102, 241, 0.05);
+    border-style: solid;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 600px) {
+
+    .form-row,
+    .form-row.triple {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        width: 100%;
+        text-align: center;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+}
