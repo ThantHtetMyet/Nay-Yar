@@ -21,7 +21,7 @@ const post = async (endpoint, body) => {
 };
 
 const get = async (endpoint) => {
-    const res = await fetch(`${BASE_URL}/${endpoint}`);
+    const res = await fetch(`${BASE_URL}/${endpoint}`, { cache: 'no-store' });
     return res.json();
 };
 

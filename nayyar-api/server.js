@@ -210,12 +210,18 @@ app.get('/api/listing-types', async (_req, res) => {
 app.get('/api/listings', async (req, res) => {
     try {
         const db = await readListingsXML();
-        let listings = db.PropertyListings.PropertyListing.filter(l => l.IsDeleted !== 'true');
+        const raw = db.PropertyListings.PropertyListing;
+
+        // Robust filter: handles string 'true', boolean true, etc.
+        let listings = raw.filter(l => String(l.IsDeleted).toLowerCase() !== 'true');
+
         const { createdBy } = req.query;
         if (createdBy) listings = listings.filter(l => l.CreatedBy === createdBy);
+
+        console.log(`[API] Listings fetched: ${listings.length} (total raw: ${raw.length})`);
         return res.status(200).json({ success: true, data: listings });
     } catch (error) {
-        console.error('Error fetching listings:', error);
+        console.error('[API Error] Fetching listings failed:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

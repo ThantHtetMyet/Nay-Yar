@@ -12,17 +12,65 @@ import EditPostForm from '../PropertyPost/EditPostForm';
 import AlertModal from '../../components/AlertModal';
 import { getAllListings } from '../../services/api';
 
+// ── Nominatim rate limiter (module-level, shared across all callers) ───────
+// Nominatim policy: max 1 request per second. Using a queue ensures that
+// concurrent callers (e.g. React StrictMode double-invocation) still wait
+// their turn instead of firing simultaneously.
+let _lastNominatimAt = 0;
+const NOMINATIM_GAP_MS = 1200; // 1.2 s — safely above the 1 s limit
+
 // ── Geocode any query via Nominatim (OpenStreetMap, free) ─────────────────
-const geocodeQuery = async (query) => {
+const fetchGeocode = async (url) => {
+    const wait = NOMINATIM_GAP_MS - (Date.now() - _lastNominatimAt);
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    _lastNominatimAt = Date.now();
+
     try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
         const res = await fetch(url, { headers: { 'User-Agent': 'NayYar-PropertyApp/1.0' } });
+        if (!res.ok) return null;
         const data = await res.json();
         if (data && data[0]) {
             return {
                 lat: parseFloat(data[0].lat),
                 lng: parseFloat(data[0].lon),
-                boundingbox: data[0].boundingbox, // [minLat, maxLat, minLon, maxLon]
+                boundingbox: data[0].boundingbox,
+            };
+        }
+    } catch { }
+    return null;
+};
+
+const COUNTRY_CODES = {
+    Singapore: 'sg',
+};
+
+const getCountryCode = (country) => COUNTRY_CODES[country] || '';
+
+const geocodeQuery = (query, countryCode = '') => {
+    const params = new URLSearchParams({ format: 'json', limit: '1', q: query });
+    if (countryCode) params.set('countrycodes', countryCode);
+    const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+    return fetchGeocode(url);
+};
+
+const geocodePostal = (postalCode, countryCode = '') => {
+    const params = new URLSearchParams({ format: 'json', limit: '1', postalcode: postalCode });
+    if (countryCode) params.set('countrycodes', countryCode);
+    const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+    return fetchGeocode(url);
+};
+
+const geocodePostalSG = async (postalCode) => {
+    const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(postalCode)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data && data.results && data.results[0]) {
+            const first = data.results[0];
+            return {
+                lat: parseFloat(first.LATITUDE),
+                lng: parseFloat(first.LONGITUDE),
             };
         }
     } catch { }
@@ -56,10 +104,14 @@ const DefaultPage = () => {
         return sessionUser ? JSON.parse(sessionUser) : { FullName: 'Guest' };
     });
 
-    // Country selection modal
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    // Country selection modal — shown only once per session
+    const [isModalOpen, setIsModalOpen] = useState(
+        () => !sessionStorage.getItem('nayYarRegionSet')
+    );
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState('Singapore');
+    const [selectedCountry, setSelectedCountry] = useState(
+        () => sessionStorage.getItem('nayYarCountry') || 'Singapore'
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [locating, setLocating] = useState(false);
 
@@ -73,10 +125,10 @@ const DefaultPage = () => {
     const [markerListings, setMarkerListings] = useState([]);   // listings with {lat, lng}
     const [markersVersion, setMarkersVersion] = useState(0);    // bump to reload markers
     const [focusPropertyId, setFocusPropertyId] = useState(null);
-    const [pendingFocusId, setPendingFocusId] = useState(null);
 
-    // Success Alert state
-    const [alert, setAlert] = useState({ isOpen: false, type: 'success', title: '', message: '' });
+    // Success Alert state — focusId is set here so the map refresh and the
+    // focus step don't interfere with each other.
+    const [alert, setAlert] = useState({ isOpen: false, type: 'success', title: '', message: '', focusId: null });
 
     // Refs — Leaflet operates on the real DOM
     const mapDivRef = useRef(null);
@@ -125,7 +177,7 @@ const DefaultPage = () => {
         };
     }, []);
 
-    // ── 2. Fly to country when Locate is clicked ─────────────────────────
+    // ── 2. Fly to country when countryGeo changes ────────────────────────
     useEffect(() => {
         if (!countryGeo || !leafletMapRef.current) return;
         const bb = countryGeo.boundingbox; // [minLat, maxLat, minLon, maxLon]
@@ -138,6 +190,15 @@ const DefaultPage = () => {
         }
     }, [countryGeo]);
 
+    // ── 2b. Restore saved region on page refresh (skip modal, fly immediately)
+    useEffect(() => {
+        const saved = sessionStorage.getItem('nayYarCountryGeo');
+        if (saved) {
+            try { setCountryGeo(JSON.parse(saved)); } catch { }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // ── 3. Invalidate map size after the overlay closes ──────────────────
     useEffect(() => {
         if (!isModalOpen && leafletMapRef.current) {
@@ -147,64 +208,89 @@ const DefaultPage = () => {
 
     // ── 4. Load listings from API and geocode postal codes ───────────────
     useEffect(() => {
+        let cancelled = false;
+
         const load = async () => {
             try {
-                // Clear existing markers briefly to show we're reloading
-                setMarkerListings([]);
-
                 const res = await getAllListings();
-                if (!res.success || !Array.isArray(res.data)) return;
+                if (cancelled || !res.success) return;
 
-                const withLocationInfo = res.data.filter(l => (l.PostalCode || l.Address) && l.Country);
+                const listings = Array.isArray(res.data)
+                    ? res.data
+                    : (res.data ? [res.data] : []);
 
-                // Optimization: If we have a pending focus ID, move that listing to the front 
-                // so it gets geocoded first and shows up immediately.
-                if (pendingFocusId) {
-                    const idx = withLocationInfo.findIndex(l => l.PropertyID === pendingFocusId);
+                const withLocationInfo = listings.filter(l => (l.PostalCode || l.Address) && l.Country);
+
+                // Prioritize the listing that was just created/edited (if any)
+                const currentFocusId = alert.focusId;
+                if (currentFocusId) {
+                    const idx = withLocationInfo.findIndex(l => l.PropertyID === currentFocusId);
                     if (idx > -1) {
-                        const [target] = withLocationInfo.splice(idx, 1);
-                        withLocationInfo.unshift(target);
+                        const [focused] = withLocationInfo.splice(idx, 1);
+                        withLocationInfo.unshift(focused);
                     }
                 }
 
                 const results = [];
 
                 for (let i = 0; i < withLocationInfo.length; i++) {
+                    if (cancelled) return;
                     const l = withLocationInfo[i];
-                    const locKey = l.PostalCode ? `${l.PostalCode}-${l.Country}` : `${l.Address}-${l.City}-${l.Country}`;
+                    const countryCode = getCountryCode(l.Country);
 
-                    if (!geocacheRef.current[locKey]) {
-                        const query = l.PostalCode
-                            ? `${l.PostalCode}, ${l.Country}`
-                            : `${l.Address}, ${l.City}, ${l.Country}`;
+                    const postalKey = l.PostalCode && l.Country ? `${l.PostalCode}|${l.Country}` : null;
+                    const locKey = postalKey || [l.Address, l.City, l.Country].filter(Boolean).join('|');
 
-                        const geo = await geocodeQuery(query);
-                        if (geo) geocacheRef.current[locKey] = geo;
-                        // Respect Nominatim's 1-req/sec rate limit
-                        if (i < withLocationInfo.length - 1) await new Promise(r => setTimeout(r, 400));
+                    let geo = geocacheRef.current[locKey];
+                    if (!geo && postalKey) geo = geocacheRef.current[postalKey];
+                    if (!geo) {
+                        const fullQuery = [l.Address, l.PostalCode, l.City, l.Country].filter(Boolean).join(', ');
+                        if (countryCode === 'sg' && l.PostalCode) {
+                            geo = await geocodePostalSG(l.PostalCode);
+                        }
+                        if (!geo) geo = postalKey ? await geocodePostal(l.PostalCode, countryCode) : null;
+                        if (!geo) geo = await geocodeQuery(fullQuery, countryCode);
+                        if (geo) {
+                            geocacheRef.current[locKey] = geo;
+                            if (postalKey) geocacheRef.current[postalKey] = geo;
+                        }
                     }
 
-                    const cached = geocacheRef.current[locKey];
-                    if (cached) {
-                        // Tiny offset so overlapping pins are both visible
-                        const siblingCount = results.filter(r => r._geoKey === locKey).length;
-                        results.push({
-                            ...l,
-                            _geoKey: locKey,
-                            lat: cached.lat + siblingCount * 0.0003,
-                            lng: cached.lng + siblingCount * 0.0003,
-                        });
+                    if (cancelled) return;
+
+                    // Fallback so pins don't vanish if geocoding fails
+                    const finalGeo = geo || countryGeo || { lat: 1.3521, lng: 103.8198 };
+
+                    // Apply coordinate offset based on index (i) to ensure they never stack perfectly
+                    const jitterLat = (i % 10) * 0.0004;
+                    const jitterLng = (Math.floor(i / 10) % 10) * 0.0004;
+
+                    const markerObj = {
+                        ...l,
+                        _geoKey: locKey,
+                        lat: Number(finalGeo.lat) + jitterLat,
+                        lng: Number(finalGeo.lng) + jitterLng,
+                    };
+                    results.push(markerObj);
+
+                    // Immediate Update for the prioritized listing, etc.
+                    if (l.PropertyID === currentFocusId && results.length === 1) {
+                        setMarkerListings([...results]);
+                    } else if (results.length % 10 === 0) {
+                        setMarkerListings([...results]);
                     }
                 }
 
-                setMarkerListings(results);
+                if (!cancelled) setMarkerListings([...results]);
             } catch (err) {
-                console.error('[NayYar] Failed to load map listings:', err);
+                if (!cancelled) console.error('[NayYar] Failed to load map listings:', err);
             }
         };
 
         load();
-    }, [markersVersion, pendingFocusId]);
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [markersVersion, alert.focusId, countryGeo]);
 
     // ── 5. Sync Leaflet markers whenever markerListings changes ──────────
     useEffect(() => {
@@ -289,6 +375,11 @@ const DefaultPage = () => {
             marker.addTo(map);
             markersRef.current.push(marker);
         });
+
+        if (markerListings.length > 1) {
+            const bounds = L.latLngBounds(markerListings.map(l => [l.lat, l.lng]));
+            map.fitBounds(bounds, { padding: [60, 60], maxZoom: 13 });
+        }
     }, [markerListings]);
 
     // ── 6. Auto-focus on a specific property after success ───────────────
@@ -306,8 +397,14 @@ const DefaultPage = () => {
     // ── Handlers ──────────────────────────────────────────────────────────
     const handleLocate = async () => {
         setLocating(true);
-        const geo = await geocodeQuery(selectedCountry);
-        if (geo) setCountryGeo(geo);
+        const geo = await geocodeQuery(selectedCountry, getCountryCode(selectedCountry));
+        if (geo) {
+            setCountryGeo(geo);
+            // Persist so the modal is skipped and position is restored on refresh
+            sessionStorage.setItem('nayYarRegionSet', '1');
+            sessionStorage.setItem('nayYarCountry', selectedCountry);
+            sessionStorage.setItem('nayYarCountryGeo', JSON.stringify(geo));
+        }
         setLocating(false);
         setIsModalOpen(false);
     };
@@ -333,25 +430,25 @@ const DefaultPage = () => {
     const handleCreateSuccess = (propertyId) => {
         closeModal();
         setMarkersVersion(v => v + 1); // refresh map markers
-        setPendingFocusId(propertyId);
         setAlert({
             isOpen: true,
             type: 'success',
             title: 'Created Successfully',
-            message: 'Your property listing has been posted! Click OK to see it on the map.'
+            message: 'Your property listing has been posted! Click OK to see it on the map.',
+            focusId: propertyId,
         });
     };
 
     const handleEditClick = (propertyId) => { setActivePropertyId(propertyId); setModalView('edit'); };
     const handleEditSuccess = (propertyId) => {
-        closeModal(); // Hide detail modal as requested
-        setMarkersVersion(v => v + 1);
-        setPendingFocusId(propertyId || activePropertyId);
+        closeModal();
+        setMarkersVersion(v => v + 1); // refresh map markers with updated data
         setAlert({
             isOpen: true,
             type: 'success',
             title: 'Updated Successfully',
-            message: 'Changes saved! Click OK to see your listing on the map.'
+            message: 'Changes saved! Click OK to see your listing on the map.',
+            focusId: propertyId,
         });
     };
 
@@ -362,6 +459,9 @@ const DefaultPage = () => {
 
     const confirmLogout = () => {
         sessionStorage.removeItem('user');
+        sessionStorage.removeItem('nayYarRegionSet');
+        sessionStorage.removeItem('nayYarCountry');
+        sessionStorage.removeItem('nayYarCountryGeo');
         navigate('/');
     };
 
@@ -493,11 +593,9 @@ const DefaultPage = () => {
                 title={alert.title}
                 message={alert.message}
                 onClose={() => {
-                    setAlert({ ...alert, isOpen: false });
-                    if (pendingFocusId) {
-                        setFocusPropertyId(pendingFocusId);
-                        setPendingFocusId(null);
-                    }
+                    const fid = alert.focusId;
+                    setAlert(a => ({ ...a, isOpen: false, focusId: null }));
+                    if (fid) setFocusPropertyId(fid);
                 }}
             />
 
