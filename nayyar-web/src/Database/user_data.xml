@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Users>
+  <User>
+    <ID>d290f1ee-6c54-4b01-90e6-d701748f0851</ID>
+    <UserID>admin_user</UserID>
+    <FullName>System Admin</FullName>
+    <Email>admin@nayyarweb.com</Email>
+    <MobileNo>+09123456789</MobileNo>
+    <LoginPassword>hashed_password_placeholder</LoginPassword>
+    <Remark>Root administrator account</Remark>
+    <LastLogin>2026-02-21T09:00:00Z</LastLogin>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <CreatedDate>2026-01-01T00:00:00Z</CreatedDate>
+    <UpdatedDate>2026-02-21T09:00:00Z</UpdatedDate>
+  </User>
+  <User>
+    <ID>1ac4c2d4-07d2-4354-94e8-89c02a7b81cd</ID>
+    <UserID>nayyar_landlord</UserID>
+    <FullName>Aung Kyaw</FullName>
+    <Email>aung.kyaw@example.com</Email>
+    <MobileNo>+09987654321</MobileNo>
+    <LoginPassword>hashed_password_placeholder</LoginPassword>
+    <Remark>Verified Landlord</Remark>
+    <LastLogin>2026-02-20T14:30:00Z</LastLogin>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <CreatedDate>2026-01-15T10:20:00Z</CreatedDate>
+    <UpdatedDate>2026-02-18T11:00:00Z</UpdatedDate>
+  </User>
+  <User>
+    <ID>3bfeb142-b7e6-4d0f-a3e7-ba178d467f62</ID>
+    <UserID>nayyar_tenant</UserID>
+    <FullName>Su Su</FullName>
+    <Email>su.su@example.com</Email>
+    <MobileNo>+09555123456</MobileNo>
+    <LoginPassword>hashed_password_placeholder</LoginPassword>
+    <Remark>Active Tenant</Remark>
+    <LastLogin>2026-02-21T16:00:00Z</LastLogin>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <CreatedDate>2026-02-01T08:15:00Z</CreatedDate>
+    <UpdatedDate>2026-02-01T08:15:00Z</UpdatedDate>
+  </User>
+</Users>
