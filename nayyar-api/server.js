@@ -238,10 +238,24 @@ app.get('/api/listings', async (req, res) => {
 app.get('/api/listings/:id', async (req, res) => {
     try {
         const db = await readListingsXML();
-        const listing = db.PropertyListings.PropertyListing.find(
-            l => l.PropertyID === req.params.id && l.IsDeleted !== 'true'
+        const listings = db.PropertyListings.PropertyListing;
+        const targetId = String(req.params.id).trim();
+
+        const getCleanId = (idObj) => {
+            if (!idObj) return '';
+            const val = typeof idObj === 'object' ? (idObj._ || idObj['$']?.id || '') : idObj;
+            return String(val).trim();
+        };
+
+        const listing = listings.find(l =>
+            getCleanId(l.PropertyID) === targetId &&
+            String(l.IsDeleted).toLowerCase() !== 'true'
         );
-        if (!listing) return res.status(404).json({ error: 'Listing not found.' });
+
+        if (!listing) {
+            console.warn(`[API] Fetch failed - Listing ID ${targetId} matches none in [${listings.map(l => getCleanId(l.PropertyID)).join(', ')}]`);
+            return res.status(404).json({ error: 'Listing not found.' });
+        }
         return res.status(200).json({ success: true, data: listing });
     } catch (error) {
         console.error('Error fetching listing:', error);
@@ -291,9 +305,23 @@ app.put('/api/listings/:id', async (req, res) => {
     try {
         const db = await readListingsXML();
         const listings = db.PropertyListings.PropertyListing;
-        const idx = listings.findIndex(l => l.PropertyID === req.params.id && l.IsDeleted !== 'true');
+        const targetId = String(req.params.id).trim();
 
-        if (idx === -1) return res.status(404).json({ error: 'Listing not found.' });
+        const getCleanId = (idObj) => {
+            if (!idObj) return '';
+            const val = typeof idObj === 'object' ? (idObj._ || idObj['$']?.id || '') : idObj;
+            return String(val).trim();
+        };
+
+        const idx = listings.findIndex(l =>
+            getCleanId(l.PropertyID) === targetId &&
+            String(l.IsDeleted).toLowerCase() !== 'true'
+        );
+
+        if (idx === -1) {
+            console.warn(`[API] Update failed - Listing ID ${targetId} matches none in [${listings.map(l => getCleanId(l.PropertyID)).join(', ')}]`);
+            return res.status(404).json({ error: 'Listing not found.' });
+        }
 
         const payload = req.body;
         const now = new Date().toISOString();
@@ -328,8 +356,22 @@ app.delete('/api/listings/:id', async (req, res) => {
     try {
         const db = await readListingsXML();
         const listings = db.PropertyListings.PropertyListing;
-        const idx = listings.findIndex(l => l.PropertyID === req.params.id);
-        if (idx === -1) return res.status(404).json({ error: 'Listing not found.' });
+        const targetId = String(req.params.id).trim();
+
+        const getCleanId = (idObj) => {
+            if (!idObj) return '';
+            const val = typeof idObj === 'object' ? (idObj._ || idObj['$']?.id || '') : idObj;
+            return String(val).trim();
+        };
+
+        const idx = listings.findIndex(l =>
+            getCleanId(l.PropertyID) === targetId &&
+            String(l.IsDeleted).toLowerCase() !== 'true'
+        );
+        if (idx === -1) {
+            console.warn(`[API] Delete failed - Listing ID ${targetId} matches none in [${listings.map(l => getCleanId(l.PropertyID)).join(', ')}]`);
+            return res.status(404).json({ error: 'Listing not found.' });
+        }
 
         listings[idx].IsDeleted = 'true';
         listings[idx].IsActive = 'false';
@@ -349,13 +391,20 @@ app.patch('/api/listings/:id/close', async (req, res) => {
         const db = await readListingsXML();
         const listings = db.PropertyListings.PropertyListing;
         const targetId = String(req.params.id).trim();
+
+        const getCleanId = (idObj) => {
+            if (!idObj) return '';
+            const val = typeof idObj === 'object' ? (idObj._ || idObj['$']?.id || '') : idObj;
+            return String(val).trim();
+        };
+
         const idx = listings.findIndex(l =>
-            String(l.PropertyID).trim() === targetId &&
+            getCleanId(l.PropertyID) === targetId &&
             String(l.IsDeleted).toLowerCase() !== 'true'
         );
 
         if (idx === -1) {
-            console.warn(`[API] Close failed - Listing not found: ${targetId}`);
+            console.warn(`[API] Close failed - Listing ID ${targetId} matches none in [${listings.map(l => getCleanId(l.PropertyID)).join(', ')}]`);
             return res.status(404).json({ error: 'Listing not found.' });
         }
 
@@ -376,13 +425,20 @@ app.patch('/api/listings/:id/reopen', async (req, res) => {
         const db = await readListingsXML();
         const listings = db.PropertyListings.PropertyListing;
         const targetId = String(req.params.id).trim();
+
+        const getCleanId = (idObj) => {
+            if (!idObj) return '';
+            const val = typeof idObj === 'object' ? (idObj._ || idObj['$']?.id || '') : idObj;
+            return String(val).trim();
+        };
+
         const idx = listings.findIndex(l =>
-            String(l.PropertyID).trim() === targetId &&
+            getCleanId(l.PropertyID) === targetId &&
             String(l.IsDeleted).toLowerCase() !== 'true'
         );
 
         if (idx === -1) {
-            console.warn(`[API] Reopen failed - Listing not found: ${targetId}`);
+            console.warn(`[API] Reopen failed - Listing ID ${targetId} matches none in [${listings.map(l => getCleanId(l.PropertyID)).join(', ')}]`);
             return res.status(404).json({ error: 'Listing not found.' });
         }
 

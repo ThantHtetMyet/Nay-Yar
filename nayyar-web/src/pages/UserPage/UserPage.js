@@ -44,8 +44,9 @@ const UserPage = ({ user, onClose, onRefreshMap }) => {
         setConfirmCloseId(listingId);
     };
 
-    const handleConfirmClose = async (listingIdOverride) => {
-        const listingId = listingIdOverride || confirmCloseId;
+    const handleConfirmClose = async (passedId) => {
+        // Ensure we handle cases where an event object might be passed instead of an ID string
+        const listingId = (typeof passedId === 'string') ? passedId : confirmCloseId;
         setConfirmCloseId(null);
         try {
             const res = await markListingClosed(listingId);
@@ -79,7 +80,9 @@ const UserPage = ({ user, onClose, onRefreshMap }) => {
         }
     };
 
-    const handleReopenListing = async (listingId) => {
+    const handleReopenListing = async (passedId) => {
+        // Ensure we handle cases where an event object might be passed instead of an ID string
+        const listingId = (typeof passedId === 'string') ? passedId : activeDetailId;
         try {
             const res = await reopenListing(listingId);
             if (res.success) {
@@ -143,8 +146,8 @@ const UserPage = ({ user, onClose, onRefreshMap }) => {
             <UserPropertyDetail
                 propertyID={activeDetailId}
                 onBack={() => setActiveDetailId(null)}
-                onClosedListing={handleConfirmClose}
-                onReopenListing={handleReopenListing}
+                onClosedListing={(id) => handleConfirmClose(id)}
+                onReopenListing={(id) => handleReopenListing(id)}
             />
         );
     }
@@ -236,7 +239,7 @@ const UserPage = ({ user, onClose, onRefreshMap }) => {
                     title="Confirm Deal Closure"
                     message="Are you sure you want to mark this listing as closed/deal? It will be removed from the map entirely."
                     confirmText="Close Listing"
-                    onConfirm={handleConfirmClose}
+                    onConfirm={() => handleConfirmClose()}
                     onCancel={() => setConfirmCloseId(null)}
                 />
             )}
