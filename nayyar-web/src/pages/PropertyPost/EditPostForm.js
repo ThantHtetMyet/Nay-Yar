@@ -1,42 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import './CreatePostForm.css';
 import { getAllLookups, getListingById, updateListing } from '../../services/api';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 
-// Same 6 tabs as CreatePostForm
 const TABS = ['Classification', 'Pricing', 'Address', 'Physical Details', 'Logistics & Contact', 'Review'];
+const WHOLE_UNIT_ID = 'RST001';
+const PT_ICONS = { PT001: '🏘️', PT002: '🏙️' };
 
 const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
     // ── Dropdown data ─────────────────────────────────────────
     const [propertyTypes, setPropertyTypes] = useState([]);
-    const [listingTypes, setListingTypes] = useState([]);
     const [propertySubTypes, setPropertySubTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // ── Tab state ─────────────────────────────────────────────
+    // ── Tab + internal Classification sub-step ────────────────
     const [currentTab, setCurrentTab] = useState(0);
+    const [classStep, setClassStep] = useState(1);
 
-    // ── Room entries (Classification) ─────────────────────────
-    const [roomEntries, setRoomEntries] = useState([{ SubTypeID: '', Quantity: 1 }]);
+    // ── Rental mode ───────────────────────────────────────────
+    const [rentalMode, setRentalMode] = useState('');
 
-    const handleRoomChange = (index, field, value) =>
-        setRoomEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
-    const addRoomEntry = () =>
-        setRoomEntries(prev => [...prev, { SubTypeID: '', Quantity: 1 }]);
-    const removeRoomEntry = (index) =>
-        setRoomEntries(prev => prev.filter((_, i) => i !== index));
+    // ── Room counts ───────────────────────────────────────────
+    const [roomCounts, setRoomCounts] = useState({});
+
+    const changeCount = (typeID, delta) => {
+        setRoomCounts(prev => ({
+            ...prev,
+            [typeID]: Math.max(0, (prev[typeID] || 0) + delta),
+        }));
+    };
 
     // ── Room units (Pricing) ──────────────────────────────────
-    const [roomUnits, setRoomUnits] = useState([]);
+    const newUnit = (subTypeID, label) => ({
+        SubTypeID: subTypeID,
+        Label: label,
+        Price: '',
+        PubIncluded: false,
+        RentalBasis: 'Whole',
+        TotalBeds: 2,
+        BedsForRent: 1,
+        GenderPref: 'Any',
+        RegistrationProvided: false,
+        Remark: '',
+    });
 
+    const [roomUnits, setRoomUnits] = useState([]);
+    const [errorMsg, setErrorMsg] = useState(null);
     const handleUnitChange = (index, field, value) =>
         setRoomUnits(prev => prev.map((u, i) => i === index ? { ...u, [field]: value } : u));
 
     // ── Form data ─────────────────────────────────────────────
     const [formData, setFormData] = useState({
-        ListingType: '', PropertyType: '', Currency: 'SGD', Price: '',
+        ListingType: 'LT001', PropertyType: '', Currency: 'SGD', Price: '',
         RentTerm: 'Per Month', Country: 'Singapore', City: '', Address: '',
         PostalCode: '', Bedrooms: '', Bathrooms: '', AreaSize: '',
-        AvailableFrom: '', ContactPhone: '', ContactEmail: user?.Email || '',
+        AvailableFrom: '', ContactPhone: '', ContactEmail: '',
         GenderPreference: 'Any', Description: '', Remark: ''
     });
 
@@ -49,18 +67,17 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
     useEffect(() => {
         const load = async () => {
             try {
-                const [listingRes, { ptData, ltData, pstData }] = await Promise.all([
+                const [listingRes, { ptData, pstData }] = await Promise.all([
                     getListingById(propertyID),
                     getAllLookups(),
                 ]);
                 if (ptData.success) setPropertyTypes(ptData.data);
-                if (ltData.success) setListingTypes(ltData.data);
                 if (pstData.success) setPropertySubTypes(pstData.data);
 
                 if (listingRes.success) {
                     const l = listingRes.data;
                     setFormData({
-                        ListingType: l.ListingType || '',
+                        ListingType: 'LT001',
                         PropertyType: l.PropertyType || '',
                         Currency: l.Currency || 'SGD',
                         Price: l.Price || '',
@@ -74,21 +91,34 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
                         AreaSize: l.AreaSize || '',
                         AvailableFrom: l.AvailableFrom || '',
                         ContactPhone: l.ContactPhone || '',
-                        ContactEmail: l.ContactEmail || user?.Email || '',
+                        ContactEmail: l.ContactEmail || '',
                         GenderPreference: l.GenderPreference || 'Any',
                         Description: l.Description || '',
                         Remark: l.Remark || '',
                     });
 
-                    // Restore room units from PropertySubType JSON
-                    if (l.PropertyType === 'PT003' && l.ListingType === 'LT001' && l.PropertySubType) {
+                    if (l.PropertySubType) {
                         try {
                             const parsed = JSON.parse(l.PropertySubType);
                             if (Array.isArray(parsed) && parsed.length > 0) {
                                 setRoomUnits(parsed);
+                                const firstSubType = parsed[0]?.SubTypeID;
+                                if (firstSubType === WHOLE_UNIT_ID) {
+                                    setRentalMode('whole');
+                                } else {
+                                    setRentalMode('rooms');
+                                    const counts = {};
+                                    parsed.forEach(u => {
+                                        counts[u.SubTypeID] = (counts[u.SubTypeID] || 0) + 1;
+                                    });
+                                    setRoomCounts(counts);
+                                }
                             }
-                        } catch { /* ignore parse errors */ }
+                        } catch { /* ignore */ }
                     }
+
+                    // If property type known, go straight to sub-step 2
+                    if (l.PropertyType) setClassStep(2);
                 }
             } catch (err) {
                 console.error('EditPostForm load error:', err);
@@ -97,42 +127,92 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
             }
         };
         load();
-    }, [propertyID, user]);
+    }, [propertyID]);
 
-    // ── Derived flags ─────────────────────────────────────────
-    const isRentRoom = formData.ListingType === 'LT001' && formData.PropertyType === 'PT003';
-    const isRoom = formData.PropertyType === 'PT003';
-    const isRent = formData.ListingType === 'LT001';
+    // ── Derived ───────────────────────────────────────────────
+    const isWholeUnit = rentalMode === 'whole';
+    const isRoomMode = rentalMode === 'rooms';
+    const skipPhysical = isRoomMode;
+    const roomSubTypes = propertySubTypes.filter(p => p.TypeID !== WHOLE_UNIT_ID);
+    const totalRooms = Object.values(roomCounts).reduce((s, v) => s + v, 0);
+
+    // ── Build room units when leaving Classification → Pricing ─
+    const buildRoomUnits = () => {
+        if (isWholeUnit) {
+            const wholeName = propertySubTypes.find(p => p.TypeID === WHOLE_UNIT_ID)?.TypeName || 'Whole Unit';
+            const existingWhole = roomUnits.find(u => u.SubTypeID === WHOLE_UNIT_ID);
+            setRoomUnits([existingWhole || newUnit(WHOLE_UNIT_ID, wholeName)]);
+        } else {
+            const existingByType = {};
+            roomUnits.forEach(u => {
+                if (!existingByType[u.SubTypeID]) existingByType[u.SubTypeID] = [];
+                existingByType[u.SubTypeID].push(u);
+            });
+
+            const finalUnits = [];
+            roomSubTypes.forEach(pst => {
+                const qty = roomCounts[pst.TypeID] || 0;
+                const existing = existingByType[pst.TypeID] || [];
+                for (let i = 0; i < qty; i++) {
+                    const unit = existing[i] ? { ...existing[i] } : newUnit(pst.TypeID, '');
+                    unit.Label = qty > 1 ? `${pst.TypeName} #${i + 1}` : pst.TypeName;
+                    finalUnits.push(unit);
+                }
+            });
+            setRoomUnits(finalUnits);
+        }
+    };
 
     // ── Navigation ────────────────────────────────────────────
     const tabName = TABS[currentTab];
     const isLastTab = currentTab === TABS.length - 1;
 
     const goNext = () => {
+        if (currentTab === 0 && classStep === 1) {
+            setClassStep(2);
+            return;
+        }
+        if (currentTab === 0 && classStep === 2) {
+            buildRoomUnits();
+        }
+
+        // Validate Postal Code when leaving the Address tab
+        if (tabName === 'Address' && formData.PostalCode) {
+            if (formData.Country.toLowerCase() === 'singapore' && !/^\d{6}$/.test(formData.PostalCode)) {
+                setErrorMsg('Please enter a valid 6-digit Singapore postal code.');
+                return;
+            }
+        }
+
         let next = currentTab + 1;
-        if (isRoom && TABS[next] === 'Physical Details') next++;
+        if (skipPhysical && TABS[next] === 'Physical Details') next++;
         setCurrentTab(Math.min(next, TABS.length - 1));
     };
+
     const goPrev = () => {
+        if (currentTab === 0 && classStep === 2) {
+            setClassStep(1);
+            return;
+        }
         let prev = currentTab - 1;
-        if (isRoom && TABS[prev] === 'Physical Details') prev--;
+        if (skipPhysical && TABS[prev] === 'Physical Details') prev--;
         setCurrentTab(Math.max(prev, 0));
     };
 
-    // ── Validation (same rules as create) ────────────────────
+    // ── Validation ────────────────────────────────────────────
     const isTabValid = () => {
+        if (currentTab === 0) {
+            if (classStep === 1) return !!formData.PropertyType;
+            if (!rentalMode) return false;
+            if (isRoomMode) return totalRooms > 0;
+            return true;
+        }
         switch (tabName) {
-            case 'Classification':
-                if (!formData.ListingType || !formData.PropertyType) return false;
-                if (isRentRoom) return roomUnits.length > 0;
-                return true;
             case 'Pricing':
-                if (!formData.Currency) return false;
-                if (isRentRoom) return roomUnits.length > 0 && roomUnits.every(u => u.Price && Number(u.Price) > 0);
-                return !!formData.Price && Number(formData.Price) > 0;
+                return !!formData.Currency && roomUnits.length > 0 && roomUnits.every(u => u.Price && Number(u.Price) > 0);
             case 'Address': return !!formData.Country && !!formData.City;
-            case 'Physical Details': return isRoom ? true : !!formData.Bedrooms;
-            case 'Logistics & Contact': return !!formData.ContactPhone;
+            case 'Physical Details': return !!formData.Bedrooms;
+            case 'Logistics & Contact': return !!formData.ContactPhone && !!formData.AvailableFrom;
             case 'Review': return true;
             default: return true;
         }
@@ -143,66 +223,125 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
         const payload = {
             ...formData,
             CreatedBy: user?.UserID || 'Guest',
-            ...(isRentRoom && {
-                Price: '0',
-                PropertySubType: JSON.stringify(roomUnits)
-            })
+            PropertySubType: JSON.stringify(roomUnits),
+            Price: isWholeUnit ? (roomUnits[0]?.Price || '0') : '0',
         };
         try {
             const data = await updateListing(propertyID, payload);
             if (data.success) {
                 onSuccess(propertyID);
             } else {
-                alert(`Error: ${data.error}`);
+                setErrorMsg(data.error || 'An unknown error occurred.');
             }
         } catch (err) {
             console.error('Update error:', err);
-            alert('Failed to update listing. Is the server running?');
+            setErrorMsg('Failed to update listing. Please check your connection and try again.');
         }
     };
 
     // ── Label helpers ─────────────────────────────────────────
-    const getLTName = (id) => listingTypes.find(l => l.TypeID === id)?.TypeName || id;
     const getPTName = (id) => propertyTypes.find(p => p.TypeID === id)?.TypeName || id;
 
     if (isLoading) return <div className="loading-spinner">Loading listing…</div>;
 
-    // ── Visible tabs (skip Physical Details for Rooms) ────────
-    const visibleTabs = TABS.filter(t => !isRoom || t !== 'Physical Details');
-    const visibleStep = visibleTabs.indexOf(tabName) + 1;
-    const totalVisible = visibleTabs.length;
+    const renderErrorModal = () => errorMsg
+        ? <ErrorModal message={errorMsg} onClose={() => setErrorMsg(null)} />
+        : null;
+
+    const visibleTabs = TABS.filter(t => !skipPhysical || t !== 'Physical Details');
+    const visibleStep = currentTab === 0 ? classStep : visibleTabs.indexOf(tabName) + 2;
+    const totalVisible = visibleTabs.length + 1;
 
     // ─────────────────────────────────────────────────────────
-    // TAB RENDERERS  (reusing same JSX as CreatePostForm)
+    // TAB RENDERERS
     // ─────────────────────────────────────────────────────────
 
-    const renderClassification = () => (
-        <div className="form-section tab-content">
-            <div className="form-row">
-                <div className="input-group">
-                    <label>Listing Type *</label>
-                    <select name="ListingType" value={formData.ListingType} onChange={handleChange} required>
-                        <option value="">Select Rent / Sale</option>
-                        {listingTypes.map(lt => <option key={lt.TypeID} value={lt.TypeID}>{lt.TypeName}</option>)}
-                    </select>
+    const renderClassification = () => {
+        if (classStep === 1) {
+            return (
+                <div className="form-section tab-content">
+                    <p className="classif-hint">What type of property are you listing?</p>
+                    <div className="property-type-cards">
+                        {propertyTypes.map(pt => (
+                            <button
+                                key={pt.TypeID}
+                                type="button"
+                                className={`pt-card ${formData.PropertyType === pt.TypeID ? 'selected' : ''}`}
+                                onClick={() => {
+                                    setFormData(prev => ({ ...prev, PropertyType: pt.TypeID }));
+                                    setRentalMode('');
+                                    setRoomCounts({});
+                                    setTimeout(() => setClassStep(2), 180);
+                                }}
+                            >
+                                <span className="pt-card-icon">{PT_ICONS[pt.TypeID] || '🏠'}</span>
+                                <span className="pt-card-name">{pt.TypeName}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <div className="input-group">
-                    <label>Property Type *</label>
-                    <select name="PropertyType" value={formData.PropertyType} onChange={handleChange} required>
-                        <option value="">Select Property Type</option>
-                        {propertyTypes.map(pt => <option key={pt.TypeID} value={pt.TypeID}>{pt.TypeName}</option>)}
-                    </select>
+            );
+        }
+
+        return (
+            <div className="form-section tab-content">
+                <div className="classif-back-header">
+                    <span className="classif-chosen">
+                        {PT_ICONS[formData.PropertyType] || '🏠'} {getPTName(formData.PropertyType)}
+                    </span>
                 </div>
+                <p className="classif-hint">How would you like to rent this property?</p>
+
+                <div className="rental-mode-cards">
+                    <button
+                        type="button"
+                        className={`rental-mode-card ${rentalMode === 'whole' ? 'selected' : ''}`}
+                        onClick={() => { setRentalMode('whole'); setRoomCounts({}); }}
+                    >
+                        <span className="rental-mode-icon">🏠</span>
+                        <span className="rental-mode-title">Whole Unit</span>
+                        <span className="rental-mode-desc">Rent out the entire unit at one price</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`rental-mode-card ${rentalMode === 'rooms' ? 'selected' : ''}`}
+                        onClick={() => setRentalMode('rooms')}
+                    >
+                        <span className="rental-mode-icon">🛏️</span>
+                        <span className="rental-mode-title">By Room</span>
+                        <span className="rental-mode-desc">List individual rooms with separate prices</span>
+                    </button>
+                </div>
+
+                {isRoomMode && (
+                    <div className="room-stepper-section">
+                        <p className="classif-hint" style={{ marginTop: '20px' }}>Select the number of rooms:</p>
+                        {roomSubTypes.map(pst => (
+                            <div key={pst.TypeID} className="room-stepper-row">
+                                <span className="room-stepper-label">{pst.TypeName}</span>
+                                <div className="room-stepper-control">
+                                    <button type="button" className="stepper-btn"
+                                        onClick={() => changeCount(pst.TypeID, -1)}
+                                        disabled={(roomCounts[pst.TypeID] || 0) === 0}>−</button>
+                                    <span className="stepper-value">{roomCounts[pst.TypeID] || 0}</span>
+                                    <button type="button" className="stepper-btn"
+                                        onClick={() => changeCount(pst.TypeID, 1)}>+</button>
+                                </div>
+                            </div>
+                        ))}
+                        {totalRooms > 0 && (
+                            <div className="stepper-summary">
+                                {roomSubTypes
+                                    .filter(pst => (roomCounts[pst.TypeID] || 0) > 0)
+                                    .map(pst => `${roomCounts[pst.TypeID]} × ${pst.TypeName}`)
+                                    .join('  ·  ')}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
-
-            {isRentRoom && (
-                <div className="room-entries-section subtype-row">
-                    <label className="room-entries-label">Room Units *</label>
-                    <p className="room-price-hint">Units are already expanded from the original listing. You can adjust pricing on the next tab.</p>
-                </div>
-            )}
-        </div>
-    );
+        );
+    };
 
     const renderPricing = () => (
         <div className="form-section tab-content">
@@ -215,135 +354,128 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
                         <option value="MYR">MYR (RM)</option>
                     </select>
                 </div>
-                {isRent && (
-                    <div className="input-group">
-                        <label>Rent Term *</label>
-                        <select name="RentTerm" value={formData.RentTerm} onChange={handleChange} required>
-                            <option value="Per Month">Per Month</option>
-                            <option value="Per Year">Per Year</option>
-                        </select>
-                    </div>
-                )}
+                <div className="input-group">
+                    <label>Rent Term *</label>
+                    <select name="RentTerm" value={formData.RentTerm} onChange={handleChange} required>
+                        <option value="Per Month">Per Month</option>
+                        <option value="Per Year">Per Year</option>
+                    </select>
+                </div>
             </div>
 
-            {isRentRoom ? (
-                <div className="room-entries-section">
-                    <label className="room-entries-label">Price per Room *</label>
-                    <p className="room-price-hint">Edit pricing, PUB, and preferences for each room.</p>
-                    {roomUnits.map((unit, index) => (
-                        <div key={index} className="room-price-entry">
-                            <div className="room-card-header">
-                                <span className="room-card-title">{unit.Label}</span>
-                            </div>
+            <div className="room-entries-section">
+                <label className="room-entries-label">
+                    {isWholeUnit ? 'Unit Pricing *' : 'Price per Room *'}
+                </label>
+                {!isWholeUnit && <p className="room-price-hint">Edit pricing and terms for each room.</p>}
 
-                            <div className="room-card-body">
+                {roomUnits.map((unit, index) => (
+                    <div key={index} className="room-price-entry">
+                        <div className="room-card-header">
+                            <span className="room-card-title">{unit.Label}</span>
+                        </div>
+                        <div className="room-card-body">
+                            {!isWholeUnit && (
                                 <div className="rental-basis-row">
                                     <span className="rental-basis-label">Rental Basis *</span>
                                     <div className="rental-basis-pills">
-                                        <button type="button" className={`basis-pill ${unit.RentalBasis === 'Whole' ? 'active' : ''}`}
-                                            onClick={() => handleUnitChange(index, 'RentalBasis', 'Whole')}>🏠 Whole Room</button>
-                                        <button type="button" className={`basis-pill ${unit.RentalBasis === 'Shared' ? 'active' : ''}`}
-                                            onClick={() => handleUnitChange(index, 'RentalBasis', 'Shared')}>🛏️ Shared · Per Bed</button>
+                                        <button type="button"
+                                            className={`basis-pill ${unit.RentalBasis === 'Whole' ? 'active' : ''}`}
+                                            onClick={() => handleUnitChange(index, 'RentalBasis', 'Whole')}
+                                        >🚪 Whole Room</button>
+                                        <button type="button"
+                                            className={`basis-pill ${unit.RentalBasis === 'Shared' ? 'active' : ''}`}
+                                            onClick={() => handleUnitChange(index, 'RentalBasis', 'Shared')}
+                                        >🛏️ Shared · Per Bed</button>
                                     </div>
                                 </div>
+                            )}
 
-                                {unit.RentalBasis === 'Shared' && (
-                                    <>
-                                        <div className="form-row">
-                                            <div className="input-group">
-                                                <label>Total beds in this room</label>
-                                                <select value={unit.TotalBeds}
-                                                    onChange={e => handleUnitChange(index, 'TotalBeds', Number(e.target.value))}>
-                                                    {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} beds total</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="input-group">
-                                                <label>Beds available for rent</label>
-                                                <select value={unit.BedsForRent}
-                                                    onChange={e => handleUnitChange(index, 'BedsForRent', Number(e.target.value))}>
-                                                    {Array.from({ length: unit.TotalBeds }, (_, i) => i + 1).map(n => (
-                                                        <option key={n} value={n}>{n} bed{n > 1 ? 's' : ''}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                            {unit.RentalBasis === 'Shared' && (
+                                <>
+                                    <div className="form-row">
+                                        <div className="input-group">
+                                            <label>Total beds in this room</label>
+                                            <select value={unit.TotalBeds}
+                                                onChange={e => handleUnitChange(index, 'TotalBeds', Number(e.target.value))}>
+                                                {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} beds total</option>)}
+                                            </select>
                                         </div>
-                                        <div className="bed-summary-chip">
-                                            🛏️ <strong>{unit.BedsForRent}</strong> bed{unit.BedsForRent > 1 ? 's' : ''} for rent
-                                            &nbsp;·&nbsp; sharing with <strong>{unit.TotalBeds - unit.BedsForRent}</strong> other{unit.TotalBeds - unit.BedsForRent !== 1 ? 's' : ''}
-                                            &nbsp;({unit.TotalBeds} total)
+                                        <div className="input-group">
+                                            <label>Beds available for rent</label>
+                                            <select value={unit.BedsForRent}
+                                                onChange={e => handleUnitChange(index, 'BedsForRent', Number(e.target.value))}>
+                                                {Array.from({ length: unit.TotalBeds }, (_, i) => i + 1).map(n => (
+                                                    <option key={n} value={n}>{n} bed{n > 1 ? 's' : ''}</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                    </>
-                                )}
-
-                                <div className="input-group">
-                                    <label>
-                                        {formData.Currency} price
-                                        {unit.RentalBasis === 'Shared' ? ' per bed / per person' : ' for whole room'} *
-                                    </label>
-                                    <input type="number" min="0" value={unit.Price}
-                                        onChange={e => handleUnitChange(index, 'Price', e.target.value)}
-                                        placeholder="e.g. 800" required />
-                                </div>
-
-                                <div className="gender-pref-section">
-                                    <label className="rental-basis-label">Tenant Preference</label>
-                                    <div className="rental-basis-pills">
-                                        {[
-                                            { val: 'Any', label: '👥 Any' },
-                                            { val: 'Male', label: '👨 Male Only' },
-                                            { val: 'Female', label: '👩 Female Only' },
-                                            { val: 'Couple', label: '💑 Couple Only' },
-                                        ].map(opt => (
-                                            <button key={opt.val} type="button"
-                                                className={`basis-pill ${unit.GenderPref === opt.val ? 'active' : ''}`}
-                                                onClick={() => handleUnitChange(index, 'GenderPref', opt.val)}
-                                            >{opt.label}</button>
-                                        ))}
                                     </div>
-                                </div>
+                                    <div className="bed-summary-chip">
+                                        🛏️ <strong>{unit.BedsForRent}</strong> bed{unit.BedsForRent > 1 ? 's' : ''} for rent
+                                        &nbsp;·&nbsp; sharing with <strong>{unit.TotalBeds - unit.BedsForRent}</strong> others
+                                        &nbsp;({unit.TotalBeds} total)
+                                    </div>
+                                </>
+                            )}
 
-                                <div className="pub-toggle-row">
-                                    <label htmlFor={`pub-${index}`}>
-                                        <input id={`pub-${index}`} type="checkbox"
-                                            checked={unit.PubIncluded}
-                                            onChange={e => handleUnitChange(index, 'PubIncluded', e.target.checked)} />
-                                        PUB (utilities) included in price
-                                    </label>
-                                    <span className="pub-hint">{unit.PubIncluded ? '✅ Included' : '❌ Not included'}</span>
-                                </div>
+                            <div className="input-group">
+                                <label>
+                                    {formData.Currency} price
+                                    {isWholeUnit ? ' for whole unit' : (unit.RentalBasis === 'Shared' ? ' per bed' : ' for whole room')} *
+                                </label>
+                                <input type="number" min="0" value={unit.Price}
+                                    onChange={e => handleUnitChange(index, 'Price', e.target.value)}
+                                    placeholder="e.g. 1500" required />
+                            </div>
 
-                                <div className="pub-toggle-row">
-                                    <label htmlFor={`reg-${index}`}>
-                                        <input id={`reg-${index}`} type="checkbox"
-                                            checked={unit.RegistrationProvided}
-                                            onChange={e => handleUnitChange(index, 'RegistrationProvided', e.target.checked)} />
-                                        Address registration provided
-                                    </label>
-                                    <span className="pub-hint">{unit.RegistrationProvided ? '✅ Provided' : '❌ Not provided'}</span>
-                                </div>
-
-                                <div className="input-group room-remark-group">
-                                    <label>Remark <span style={{ color: '#94a3b8', fontWeight: 500 }}>(Optional)</span></label>
-                                    <textarea
-                                        rows="2"
-                                        value={unit.Remark || ''}
-                                        onChange={e => handleUnitChange(index, 'Remark', e.target.value)}
-                                        placeholder="e.g. Quiet room, near MRT, no cooking..."
-                                    />
+                            <div className="gender-pref-section">
+                                <label className="rental-basis-label">Tenant Preference</label>
+                                <div className="rental-basis-pills">
+                                    {[
+                                        { val: 'Any', label: '👥 Any' },
+                                        { val: 'Male', label: '👨 Male Only' },
+                                        { val: 'Female', label: '👩 Female Only' },
+                                        { val: 'Couple', label: '💑 Couple Only' },
+                                    ].map(opt => (
+                                        <button key={opt.val} type="button"
+                                            className={`basis-pill ${unit.GenderPref === opt.val ? 'active' : ''}`}
+                                            onClick={() => handleUnitChange(index, 'GenderPref', opt.val)}
+                                        >{opt.label}</button>
+                                    ))}
                                 </div>
                             </div>
+
+                            <div className="pub-toggle-row">
+                                <label htmlFor={`pub-${index}`}>
+                                    <input id={`pub-${index}`} type="checkbox"
+                                        checked={unit.PubIncluded}
+                                        onChange={e => handleUnitChange(index, 'PubIncluded', e.target.checked)} />
+                                    PUB (utilities) included in price
+                                </label>
+                                <span className="pub-hint">{unit.PubIncluded ? '✅ Included' : '❌ Not included'}</span>
+                            </div>
+
+                            <div className="pub-toggle-row">
+                                <label htmlFor={`reg-${index}`}>
+                                    <input id={`reg-${index}`} type="checkbox"
+                                        checked={unit.RegistrationProvided}
+                                        onChange={e => handleUnitChange(index, 'RegistrationProvided', e.target.checked)} />
+                                    Address registration provided
+                                </label>
+                                <span className="pub-hint">{unit.RegistrationProvided ? '✅ Provided' : '❌ Not provided'}</span>
+                            </div>
+
+                            <div className="input-group room-remark-group">
+                                <label>Remark <span style={{ color: '#94a3b8', fontWeight: 500 }}>(Optional)</span></label>
+                                <textarea rows="2" value={unit.Remark || ''}
+                                    onChange={e => handleUnitChange(index, 'Remark', e.target.value)}
+                                    placeholder="e.g. Quiet room, near MRT..." />
+                            </div>
                         </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="form-row">
-                    <div className="input-group">
-                        <label>Price *</label>
-                        <input type="number" name="Price" value={formData.Price}
-                            onChange={handleChange} placeholder="e.g. 1500" required />
                     </div>
-                </div>
-            )}
+                ))}
+            </div>
         </div>
     );
 
@@ -362,7 +494,7 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
             <div className="form-row">
                 <div className="input-group">
                     <label>Street Address</label>
-                    <input type="text" name="Address" value={formData.Address} onChange={handleChange} />
+                    <input type="text" name="Address" value={formData.Address} onChange={handleChange} placeholder="Block 914 Jurong West..." />
                 </div>
                 <div className="input-group">
                     <label>Postal Code</label>
@@ -373,9 +505,9 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
     );
 
     const renderPhysicalDetails = () => {
-        if (isRoom) return (
+        if (skipPhysical) return (
             <div className="form-section tab-content not-applicable-card">
-                <span className="na-icon">🏠</span>
+                <span className="na-icon">🛏️</span>
                 <p className="na-title">Not applicable for Room listings</p>
                 <p className="na-subtitle">Click <strong>Next</strong> to continue.</p>
             </div>
@@ -404,50 +536,42 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
         <div className="form-section tab-content">
             <div className="form-row">
                 <div className="input-group">
-                    <label>Available From</label>
-                    <input type="date" name="AvailableFrom" value={formData.AvailableFrom} onChange={handleChange} />
+                    <label>Available From *</label>
+                    <input
+                        type="date"
+                        name="AvailableFrom"
+                        value={formData.AvailableFrom}
+                        onChange={handleChange}
+                        min={new Date().toLocaleDateString('en-CA')}
+                        required
+                    />
                 </div>
                 <div className="input-group">
                     <label>Contact Phone *</label>
                     <div className="multi-phone-container">
                         {(formData.ContactPhone ? formData.ContactPhone.split(', ') : ['']).map((phone, idx) => (
                             <div key={idx} className="phone-input-row">
-                                <input
-                                    type="tel"
-                                    value={phone}
+                                <input type="tel" value={phone}
                                     onChange={(e) => {
                                         const parts = (formData.ContactPhone ? formData.ContactPhone.split(', ') : ['']);
                                         parts[idx] = e.target.value;
                                         setFormData(prev => ({ ...prev, ContactPhone: parts.join(', ') }));
                                     }}
-                                    placeholder="+65 9xxx xxxx"
-                                    required={idx === 0}
-                                />
+                                    placeholder="+65 9xxx xxxx" required={idx === 0} />
                                 {idx > 0 && (
-                                    <button
-                                        type="button"
-                                        className="remove-phone-btn"
+                                    <button type="button" className="remove-phone-btn"
                                         onClick={() => {
                                             const parts = formData.ContactPhone.split(', ');
-                                            const filtered = parts.filter((_, i) => i !== idx);
-                                            setFormData(prev => ({ ...prev, ContactPhone: filtered.join(', ') }));
-                                        }}
-                                    >
-                                        &times;
-                                    </button>
+                                            setFormData(prev => ({ ...prev, ContactPhone: parts.filter((_, i) => i !== idx).join(', ') }));
+                                        }}>&times;</button>
                                 )}
                             </div>
                         ))}
-                        <button
-                            type="button"
-                            className="add-phone-btn"
+                        <button type="button" className="add-phone-btn"
                             onClick={() => {
                                 const current = formData.ContactPhone || '';
                                 setFormData(prev => ({ ...prev, ContactPhone: current ? current + ', ' : '' }));
-                            }}
-                        >
-                            + Add Phone Number
-                        </button>
+                            }}>+ Add Phone Number</button>
                     </div>
                 </div>
             </div>
@@ -470,49 +594,56 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
         <div className="form-section tab-content review-section">
             <div className="review-group">
                 <p className="review-category">Classification</p>
-                <div className="review-row"><span>Listing Type</span><strong>{getLTName(formData.ListingType) || '—'}</strong></div>
+                <div className="review-row"><span>Listing Type</span><strong>Rent</strong></div>
                 <div className="review-row"><span>Property Type</span><strong>{getPTName(formData.PropertyType) || '—'}</strong></div>
-
-                {isRentRoom && (
-                    <div className="review-rooms">
-                        {roomUnits.map((u, i) => (
-                            <div key={i} className="review-room-card">
-                                <div className="review-room-header">
-                                    <span className="room-price-badge">{u.Label}</span>
-                                </div>
-                                <div className="review-room-rows">
-                                    <div className="review-room-row"><span>Price</span><strong>{formData.Currency} {u.Price} / {formData.RentTerm}</strong></div>
-                                    <div className="review-room-row">
-                                        <span>Rental Basis</span>
-                                        <strong>{u.RentalBasis === 'Shared'
-                                            ? `Shared — ${u.BedsForRent} bed${u.BedsForRent > 1 ? 's' : ''} for rent (${u.TotalBeds} total)`
-                                            : 'Whole Room (Exclusive)'}</strong>
-                                    </div>
-                                    <div className="review-room-row"><span>PUB Utilities</span><strong>{u.PubIncluded ? '✅ Included' : '❌ Not included'}</strong></div>
-                                    <div className="review-room-row">
-                                        <span>Tenant Preference</span>
-                                        <strong>{u.GenderPref === 'Any' ? '👥 No Preference' : u.GenderPref === 'Male' ? '👨 Male Only' : u.GenderPref === 'Female' ? '👩 Female Only' : '💑 Couple Only'}</strong>
-                                    </div>
-                                    <div className="review-room-row"><span>Registration</span><strong>{u.RegistrationProvided ? '✅ Provided' : '❌ Not provided'}</strong></div>
-                                    {u.Remark && (
-                                        <div className="review-room-row">
-                                            <span>Remark</span>
-                                            <strong>{u.Remark}</strong>
-                                        </div>
-                                    )}
-                                </div>
+                <div className="review-row"><span>Rental Mode</span><strong>{isWholeUnit ? '🏠 Whole Unit' : '🛏️ By Room'}</strong></div>
+                {isRoomMode && totalRooms > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                        {roomSubTypes.filter(pst => (roomCounts[pst.TypeID] || 0) > 0).map(pst => (
+                            <div key={pst.TypeID} className="bed-summary-chip">
+                                <strong>{roomCounts[pst.TypeID]}</strong> × {pst.TypeName}
                             </div>
                         ))}
                     </div>
                 )}
             </div>
 
-            {!isRentRoom && (
-                <div className="review-group">
-                    <p className="review-category">Pricing</p>
-                    <div className="review-row"><span>Price</span><strong>{formData.Currency} {formData.Price}{isRent ? ` / ${formData.RentTerm}` : ''}</strong></div>
+            <div className="review-group">
+                <p className="review-category">Pricing</p>
+                <div className="review-rooms">
+                    {roomUnits.map((u, i) => (
+                        <div key={i} className="review-room-card">
+                            <div className="review-room-header">
+                                <span className="room-price-badge">{u.Label}</span>
+                            </div>
+                            <div className="review-room-rows">
+                                <div className="review-room-row"><span>Price</span>
+                                    <strong>{formData.Currency} {u.Price} / {formData.RentTerm}</strong>
+                                </div>
+                                {!isWholeUnit && (
+                                    <div className="review-room-row"><span>Rental Basis</span>
+                                        <strong>{u.RentalBasis === 'Shared'
+                                            ? `Shared — ${u.BedsForRent} bed${u.BedsForRent > 1 ? 's' : ''} for rent`
+                                            : 'Whole Room (Exclusive)'}</strong>
+                                    </div>
+                                )}
+                                <div className="review-room-row"><span>PUB Utilities</span>
+                                    <strong>{u.PubIncluded ? '✅ Included' : '❌ Not included'}</strong>
+                                </div>
+                                <div className="review-room-row"><span>Tenant Preference</span>
+                                    <strong>{u.GenderPref === 'Any' ? '👥 No Preference'
+                                        : u.GenderPref === 'Male' ? '👨 Male Only'
+                                            : u.GenderPref === 'Female' ? '👩 Female Only'
+                                                : '💑 Couple Only'}</strong>
+                                </div>
+                                <div className="review-room-row"><span>Registration</span>
+                                    <strong>{u.RegistrationProvided ? '✅ Provided' : '❌ Not provided'}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            )}
+            </div>
 
             <div className="review-group">
                 <p className="review-category">Address</p>
@@ -520,7 +651,7 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
                 {formData.Address && <div className="review-row"><span>Street</span><strong>{formData.Address} {formData.PostalCode}</strong></div>}
             </div>
 
-            {!isRoom && (
+            {!skipPhysical && (
                 <div className="review-group">
                     <p className="review-category">Physical Details</p>
                     <div className="review-row"><span>Beds / Baths</span><strong>{formData.Bedrooms || '—'} / {formData.Bathrooms || '—'}</strong></div>
@@ -531,10 +662,7 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
             <div className="review-group">
                 <p className="review-category">Logistics & Contact</p>
                 {formData.AvailableFrom && <div className="review-row"><span>Available From</span><strong>{formData.AvailableFrom}</strong></div>}
-                <div className="review-row">
-                    <span>Phone(s)</span>
-                    <strong>{formData.ContactPhone || '—'}</strong>
-                </div>
+                <div className="review-row"><span>Phone</span><strong>{formData.ContactPhone || '—'}</strong></div>
                 {formData.ContactEmail && <div className="review-row"><span>Email</span><strong>{formData.ContactEmail}</strong></div>}
                 {formData.Description && (
                     <div className="review-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
@@ -568,30 +696,37 @@ const EditPostForm = ({ propertyID, user, onSuccess, onCancel }) => {
 
     return (
         <div className="create-post-form">
+            {renderErrorModal()}
             <div className="step-indicator">
                 <div className="step-meta">
+                    <span className="step-title">
+                        {tabName === 'Classification'
+                            ? (classStep === 1 ? 'Property Type' : 'Rental Mode')
+                            : tabName}
+                    </span>
                     <span className="step-count">Step {visibleStep} of {totalVisible}</span>
-                    <span className="step-title">{tabName}</span>
                 </div>
                 <div className="step-progress-bar">
-                    <div className="step-progress-fill"
-                        style={{ width: `${(visibleStep / totalVisible) * 100}%` }} />
+                    <div className="step-progress-fill" style={{ width: `${(visibleStep / totalVisible) * 100}%` }} />
                 </div>
             </div>
 
             {renderTabContent()}
 
             <div className="form-actions">
-                {currentTab === 0
+                {currentTab === 0 && classStep === 1
                     ? <button type="button" className="auth-button ghost" onClick={onCancel}>Cancel</button>
                     : <button type="button" className="auth-button ghost" onClick={goPrev}>← Back</button>
                 }
-                {isLastTab
-                    ? <button type="button" className="auth-button" onClick={handleSubmit}>Save Changes</button>
-                    : <button type="button" className="auth-button" onClick={goNext}
-                        disabled={!valid} style={!valid ? { opacity: 0.4, cursor: 'not-allowed' } : {}}>
-                        Next →
-                    </button>
+                {currentTab === 0 && classStep === 1
+                    ? null
+                    : isLastTab
+                        ? <button type="button" className="auth-button" onClick={handleSubmit}>Save Changes</button>
+                        : <button type="button" className="auth-button" onClick={goNext}
+                            disabled={!valid}
+                            style={!valid ? { opacity: 0.4, cursor: 'not-allowed' } : {}}>
+                            Next →
+                        </button>
                 }
             </div>
         </div>

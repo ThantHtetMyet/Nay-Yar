@@ -1,0 +1,148 @@
+/* ── ConfirmModal ─────────────────────────────────────────── */
+.conf-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 18, 35, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100001;
+    /* Above almost everything */
+    animation: confFadeIn 0.2s ease forwards;
+}
+
+@keyframes confFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.conf-card {
+    width: min(90vw, 400px);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
+    padding: 32px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: confSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes confSlideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.conf-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.wrap-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1.5px solid rgba(239, 68, 68, 0.2);
+}
+
+.wrap-info {
+    background: rgba(78, 128, 240, 0.1);
+    border: 1.5px solid rgba(78, 128, 240, 0.2);
+}
+
+.conf-icon {
+    font-size: 1.8rem;
+}
+
+.conf-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0;
+}
+
+.conf-message {
+    font-size: 0.92rem;
+    color: #4a5568;
+    text-align: center;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 10px;
+}
+
+.conf-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.conf-cancel-btn {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    color: #4a5568;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.conf-cancel-btn:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.conf-confirm-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.4);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #4e80f0, #3b6bd6);
+    box-shadow: 0 6px 16px rgba(78, 128, 240, 0.3);
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #3b6bd6, #2d56b3);
+}

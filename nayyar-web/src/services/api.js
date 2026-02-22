@@ -8,7 +8,7 @@
  *   import { getPropertyTypes, createListing } from '../../services/api';
  */
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'http://localhost:5010/api';
 
 // ── Utility ────────────────────────────────────────────────────
 const post = async (endpoint, body) => {
@@ -71,8 +71,8 @@ export const getAllLookups = async () => {
 // ── Listings ───────────────────────────────────────────────────
 export const createListing = (payload) => post('listings', payload);
 
-export const getAllListings  = ()          => get('listings');
-export const getMyListings  = (createdBy) => get(`listings?createdBy=${encodeURIComponent(createdBy)}`);
+export const getAllListings = () => get('listings');
+export const getMyListings = (createdBy) => get(`listings?createdBy=${encodeURIComponent(createdBy)}`);
 export const getListingById = (id) => get(`listings/${id}`);
 
 export const updateListing = async (id, payload) => {
@@ -86,5 +86,15 @@ export const updateListing = async (id, payload) => {
 
 export const deleteListing = async (id) => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, { method: 'DELETE' });
+    return res.json();
+};
+
+export const markListingClosed = async (id) => {
+    const res = await fetch(`${BASE_URL}/listings/${id}/close`, { method: 'PATCH' });
+    return res.json();
+};
+
+export const reopenListing = async (id) => {
+    const res = await fetch(`${BASE_URL}/listings/${id}/reopen`, { method: 'PATCH' });
     return res.json();
 };

@@ -25,11 +25,16 @@
 }
 
 .alert-modal-content {
-    background: var(--clr-surface);
-    border-radius: 16px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.46) 100%);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 20px;
     width: 400px;
     max-width: 90vw;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     overflow: hidden;
     transform: translateY(0);
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -100,17 +105,19 @@
 
 .alert-modal-footer {
     padding: 16px 20px;
-    background: var(--clr-surface2, #f8fafc);
-    border-top: 1px solid var(--clr-border);
+    background: rgba(255, 255, 255, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.55);
     display: flex;
     justify-content: flex-end;
 }
 
 .alert-btn {
-    border-radius: 25px;
-    border: none;
-    background: linear-gradient(135deg, var(--clr-orange) 0%, var(--clr-orange-d) 100%);
-    color: #ffffff;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(210, 218, 228, 0.48);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    color: #1c2433;
     font-family: 'Outfit', sans-serif;
     font-size: 13px;
     font-weight: bold;
@@ -118,13 +125,21 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+    transition: transform 0.5s var(--spring), box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    box-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 0 0 0.5px rgba(255, 255, 255, 0.3);
 }
 
 .alert-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 198, 255, 0.4);
+    transform: translateY(-7px);
+    background: rgba(220, 228, 238, 0.62);
+    border-color: rgba(255, 255, 255, 0.85);
+    color: #0f172a;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.11),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .alert-btn:active {
@@ -133,9 +148,9 @@
 
 /* Theme Colors - Unified System Branding */
 .alert-modal-header {
-    border-top: 4px solid var(--clr-orange);
+    border-top: 4px solid #4e80f0;
 }
 
 .alert-modal-title h2 {
-    color: var(--clr-orange-d);
+    color: #3a6be0;
 }

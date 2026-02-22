@@ -1,0 +1,115 @@
+/* ── ErrorModal ─────────────────────────────────────────── */
+.err-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 18, 35, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: errFadeIn 0.2s ease forwards;
+}
+
+@keyframes errFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.err-card {
+    width: min(90vw, 380px);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.65));
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 22px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    padding: 32px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: errSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes errSlideUp {
+    from {
+        transform: translateY(24px) scale(0.97);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.err-icon-wrap {
+    width: 60px;
+    height: 60px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1.5px solid rgba(239, 68, 68, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.err-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.err-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1c2433;
+    text-align: center;
+    margin: 0;
+}
+
+.err-message {
+    font-size: 0.88rem;
+    color: #546282;
+    text-align: center;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 4px;
+}
+
+.err-ok-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transition: all 0.15s ease;
+}
+
+.err-ok-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+    transform: translateY(-1px);
+}
+
+.err-ok-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}

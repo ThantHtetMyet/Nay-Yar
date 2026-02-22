@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import './AlertModal.css';
 
 const AlertModal = ({ isOpen, type = 'info', title, message, onClose }) => {
@@ -10,7 +11,7 @@ const AlertModal = ({ isOpen, type = 'info', title, message, onClose }) => {
     if (type === 'warning') icon = '⚠️';
     if (type === 'success') icon = '✅';
 
-    return (
+    return ReactDOM.createPortal(
         <div className="alert-modal-overlay">
             <div className={`alert-modal-content alert-type-${type}`}>
                 <div className="alert-modal-header">
@@ -29,7 +30,8 @@ const AlertModal = ({ isOpen, type = 'info', title, message, onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

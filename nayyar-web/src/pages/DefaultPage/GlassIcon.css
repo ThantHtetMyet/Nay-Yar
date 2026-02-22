@@ -59,7 +59,26 @@
     /* Red */
 }
 
+.user .glass-base {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    /* Green */
+}
+
 /* Vector Drawings inside the Frosted layer */
+.user-vector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glass-user-initial {
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .create-vector {
     display: flex;
     flex-direction: column;

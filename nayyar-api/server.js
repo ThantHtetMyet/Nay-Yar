@@ -6,10 +6,12 @@ const xml2js = require('xml2js');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 5000;
+const PORT = 5010;
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/api/test', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 // ─── File Paths ───────────────────────────────────────────────────────────────
 const USER_DB_PATH = path.join(__dirname, 'Database', 'user_data.xml');
@@ -84,7 +86,7 @@ const readGenericXML = async (xmlPath, rootNode, childNode) => {
 };
 
 // Map payload to a canonical listing object
-const buildListingObject = (payload, propertyID, now) => ({
+const buildListingObject = (payload, propertyID, now, isRoomRent) => ({
     PropertyID: propertyID,
     PropertyType: payload.PropertyType,
     ListingType: payload.ListingType,
@@ -98,9 +100,9 @@ const buildListingObject = (payload, propertyID, now) => ({
     Address: payload.Address || '',
     PostalCode: payload.PostalCode || '',
     // Physical — leave empty for Room listings
-    Bedrooms: payload.PropertyType !== 'PT003' ? (payload.Bedrooms || '') : '',
-    Bathrooms: payload.PropertyType !== 'PT003' ? (payload.Bathrooms || '') : '',
-    AreaSize: payload.PropertyType !== 'PT003' ? (payload.AreaSize || '') : '',
+    Bedrooms: isRoomRent ? '' : (payload.Bedrooms || ''),
+    Bathrooms: isRoomRent ? '' : (payload.Bathrooms || ''),
+    AreaSize: isRoomRent ? '' : (payload.AreaSize || ''),
     AvailableFrom: payload.AvailableFrom || '',
     ContactPhone: payload.ContactPhone || '',
     ContactEmail: payload.ContactEmail || '',
@@ -112,6 +114,7 @@ const buildListingObject = (payload, propertyID, now) => ({
     UpdatedDate: '',
     IsActive: 'true',
     IsDeleted: 'false',
+    IsClosed: payload.IsClosed || 'false',
 });
 
 // ─── API ENDPOINTS ────────────────────────────────────────────────────────────
@@ -216,7 +219,12 @@ app.get('/api/listings', async (req, res) => {
         let listings = raw.filter(l => String(l.IsDeleted).toLowerCase() !== 'true');
 
         const { createdBy } = req.query;
-        if (createdBy) listings = listings.filter(l => l.CreatedBy === createdBy);
+        if (createdBy) {
+            listings = listings.filter(l => l.CreatedBy === createdBy);
+        } else {
+            // For general map/feed (no createdBy), hide closed listings
+            listings = listings.filter(l => String(l.IsClosed).toLowerCase() !== 'true');
+        }
 
         console.log(`[API] Listings fetched: ${listings.length} (total raw: ${raw.length})`);
         return res.status(200).json({ success: true, data: listings });
@@ -246,8 +254,14 @@ app.post('/api/listings', async (req, res) => {
     try {
         const payload = req.body;
 
-        // For Room+Rent: Price comes in as '0'; we just need the other required fields
-        const isRoomRent = payload.PropertyType === 'PT003' && payload.ListingType === 'LT001';
+        // Determine if it's a Room listing by checking PropertySubType
+        let isRoomRent = true;
+        try {
+            const parsed = JSON.parse(payload.PropertySubType);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].SubTypeID === 'RST001') {
+                isRoomRent = false;
+            }
+        } catch (e) { }
         if (!payload.PropertyType || !payload.ListingType || !payload.CreatedBy ||
             !payload.Country || !payload.City) {
             return res.status(400).json({
@@ -260,7 +274,7 @@ app.post('/api/listings', async (req, res) => {
 
         const db = await readListingsXML();
         const now = new Date().toISOString();
-        const newListing = buildListingObject(payload, crypto.randomUUID(), now);
+        const newListing = buildListingObject(payload, crypto.randomUUID(), now, isRoomRent);
         db.PropertyListings.PropertyListing.push(newListing);
         writeListingsXML(db);
 
@@ -284,8 +298,16 @@ app.put('/api/listings/:id', async (req, res) => {
         const payload = req.body;
         const now = new Date().toISOString();
 
+        let isRoomRent = true;
+        try {
+            const parsed = JSON.parse(payload.PropertySubType);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].SubTypeID === 'RST001') {
+                isRoomRent = false;
+            }
+        } catch (e) { }
+
         // Rebuild object preserving PropertyID and CreatedDate
-        const updated = buildListingObject(payload, req.params.id, listings[idx].CreatedDate);
+        const updated = buildListingObject(payload, req.params.id, listings[idx].CreatedDate, isRoomRent);
         updated.CreatedBy = listings[idx].CreatedBy;   // forbid changing owner
         updated.CreatedDate = listings[idx].CreatedDate;
         updated.UpdatedDate = now;
@@ -317,6 +339,60 @@ app.delete('/api/listings/:id', async (req, res) => {
         return res.status(200).json({ success: true, message: 'Listing deleted.' });
     } catch (error) {
         console.error('Error deleting listing:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// 11. MARK LISTING AS CLOSED (PATCH)
+app.patch('/api/listings/:id/close', async (req, res) => {
+    try {
+        const db = await readListingsXML();
+        const listings = db.PropertyListings.PropertyListing;
+        const targetId = String(req.params.id).trim();
+        const idx = listings.findIndex(l =>
+            String(l.PropertyID).trim() === targetId &&
+            String(l.IsDeleted).toLowerCase() !== 'true'
+        );
+
+        if (idx === -1) {
+            console.warn(`[API] Close failed - Listing not found: ${targetId}`);
+            return res.status(404).json({ error: 'Listing not found.' });
+        }
+
+        listings[idx].IsClosed = 'true';
+        listings[idx].UpdatedDate = new Date().toISOString();
+        writeListingsXML(db);
+
+        return res.status(200).json({ success: true, message: 'Listing marked as closed.' });
+    } catch (error) {
+        console.error('Error closing listing:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// 12. REOPEN CLOSED LISTING (PATCH)
+app.patch('/api/listings/:id/reopen', async (req, res) => {
+    try {
+        const db = await readListingsXML();
+        const listings = db.PropertyListings.PropertyListing;
+        const targetId = String(req.params.id).trim();
+        const idx = listings.findIndex(l =>
+            String(l.PropertyID).trim() === targetId &&
+            String(l.IsDeleted).toLowerCase() !== 'true'
+        );
+
+        if (idx === -1) {
+            console.warn(`[API] Reopen failed - Listing not found: ${targetId}`);
+            return res.status(404).json({ error: 'Listing not found.' });
+        }
+
+        listings[idx].IsClosed = 'false';
+        listings[idx].UpdatedDate = new Date().toISOString();
+        writeListingsXML(db);
+
+        return res.status(200).json({ success: true, message: 'Listing reopened.' });
+    } catch (error) {
+        console.error('Error reopening listing:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

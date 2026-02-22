@@ -1,7 +1,7 @@
 import React from 'react';
 import './GlassIcon.css';
 
-const GlassIcon = ({ type }) => {
+const GlassIcon = ({ type, initial }) => {
     return (
         <div className={`glass-icon-wrapper ${type}`}>
             <div className="glass-base"></div>
@@ -17,6 +17,11 @@ const GlassIcon = ({ type }) => {
                     <div className="icon-vector search-vector">
                         <div className="search-circle"></div>
                         <div className="search-handle"></div>
+                    </div>
+                )}
+                {type === 'user' && (
+                    <div className="icon-vector user-vector">
+                        <span className="glass-user-initial">{initial}</span>
                     </div>
                 )}
                 {type === 'logout' && (
