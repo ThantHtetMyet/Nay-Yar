@@ -67,7 +67,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
             sessionStorage.setItem('user', JSON.stringify(data.user));
 
             // Navigate instantly upon successful login
-            navigate('/default', { state: { user: data.user } });
+            navigate('/', { state: { user: data.user } });
 
         } catch (err) {
             setLoading(false);
@@ -159,7 +159,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                         {/* Mobile Fallback */}
                         <div className="auth-switch-mobile" style={{ marginTop: '20px', display: 'none' }}>
                             <span style={{ color: 'var(--clr-muted)', fontSize: 13 }}>Already have an account? </span>
-                            <span className="auth-link" style={{ cursor: 'pointer' }} onClick={() => { setIsSignUp(false); navigate('/'); }}>Sign In</span>
+                            <span className="auth-link" style={{ cursor: 'pointer' }} onClick={() => { setIsSignUp(false); navigate('/signin'); }}>Sign In</span>
                         </div>
                     </form>
                 </div>
@@ -201,7 +201,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                         <div className="auth-overlay-panel auth-overlay-left">
                             <h1 className="auth-title">Welcome Back!</h1>
                             <p className="auth-text">To keep booking rooms smoothly, please log in with your details.</p>
-                            <button className="auth-button ghost" onClick={() => { setIsSignUp(false); navigate('/'); }}>Sign In</button>
+                            <button className="auth-button ghost" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>Sign In</button>
                         </div>
 
                         {/* Overlay Right Content (Visible when Sign In active) */}

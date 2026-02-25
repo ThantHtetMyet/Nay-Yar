@@ -96,6 +96,7 @@
     gap: 12px;
     width: 100%;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .conf-cancel-btn {
@@ -126,6 +127,24 @@
     cursor: pointer;
     transition: all 0.2s;
     color: #fff;
+}
+
+.conf-neutral-btn {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #1f2937;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.conf-neutral-btn:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .btn-danger {

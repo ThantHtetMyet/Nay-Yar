@@ -11,6 +11,7 @@ import PropertyDetail from '../PropertyPost/PropertyDetail';
 import EditPostForm from '../PropertyPost/EditPostForm';
 import UserPage from '../UserPage/UserPage';
 import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import { getAllListings } from '../../services/api';
 
 // ── Nominatim rate limiter (module-level, shared across all callers) ───────
@@ -118,8 +119,14 @@ const DefaultPage = () => {
         const stateUser = location.state?.user;
         if (stateUser) return stateUser;
         const sessionUser = sessionStorage.getItem('user');
-        return sessionUser ? JSON.parse(sessionUser) : { FullName: 'Guest' };
+        if (!sessionUser) return null;
+        try {
+            return JSON.parse(sessionUser);
+        } catch {
+            return null;
+        }
     });
+    const isLoggedIn = !!user;
 
     // Country selection modal — shown only once per session
     const [isModalOpen, setIsModalOpen] = useState(
@@ -137,6 +144,7 @@ const DefaultPage = () => {
     const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
     const [modalView, setModalView] = useState('create');
     const [activePropertyId, setActivePropertyId] = useState(null);
+    const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
 
     // Map state
     const [countryGeo, setCountryGeo] = useState(null); // geocoded result for selected country
@@ -473,6 +481,14 @@ const DefaultPage = () => {
         setIsCreatePostOpen(true);
     };
 
+    const openCreateWithAuthCheck = () => {
+        if (!isLoggedIn) {
+            setIsAuthPromptOpen(true);
+            return;
+        }
+        openCreate();
+    };
+
     const closeModal = () => {
         setIsCreatePostOpen(false);
         setActivePropertyId(null);
@@ -659,6 +675,16 @@ const DefaultPage = () => {
         navigate('/');
     };
 
+    const handleLoginNavigate = () => {
+        setIsAuthPromptOpen(false);
+        navigate('/signin');
+    };
+
+    const handleSignupNavigate = () => {
+        setIsAuthPromptOpen(false);
+        navigate('/signup');
+    };
+
     const modalTitle = modalView === 'create' ? 'Create Property Listing'
         : modalView === 'edit' ? 'Edit Listing'
             : modalView === 'logout' ? 'Confirm Logout'
@@ -720,7 +746,7 @@ const DefaultPage = () => {
 
             <div className="dashboard-header">
                 <div className="header-menu">
-                    <div className="menu-item-group" onClick={openCreate}>
+                    <div className="menu-item-group" onClick={openCreateWithAuthCheck}>
                         <GlassIcon type="create" />
                         <span className="menu-label">Create Post</span>
                     </div>
@@ -728,14 +754,23 @@ const DefaultPage = () => {
                         <GlassIcon type="search" />
                         <span className="menu-label">Search</span>
                     </div>
-                    <div className="menu-item-group" onClick={openMyProfile}>
-                        <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
-                        <span className="menu-label">Account</span>
-                    </div>
-                    <div className="menu-item-group" onClick={handleLogout}>
-                        <GlassIcon type="logout" />
-                        <span className="menu-label">Logout</span>
-                    </div>
+                    {isLoggedIn ? (
+                        <>
+                            <div className="menu-item-group" onClick={openMyProfile}>
+                                <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
+                                <span className="menu-label">Account</span>
+                            </div>
+                            <div className="menu-item-group" onClick={handleLogout}>
+                                <GlassIcon type="logout" />
+                                <span className="menu-label">Logout</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="menu-item-group" onClick={handleLoginNavigate}>
+                            <GlassIcon type="user" initial="S" />
+                            <span className="menu-label">Sign-In</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -871,6 +906,20 @@ const DefaultPage = () => {
                     if (fid) setFocusPropertyId(fid);
                 }}
             />
+            {isAuthPromptOpen && (
+                <ConfirmModal
+                    title="Login required to create a post"
+                    message="Please sign in or sign up to continue. If you are not ready, choose Stay Here."
+                    type="info"
+                    confirmText="Sign In"
+                    cancelText="Sign Up"
+                    neutralText="Stay Here"
+                    onConfirm={handleLoginNavigate}
+                    onCancel={handleSignupNavigate}
+                    onNeutral={() => setIsAuthPromptOpen(false)}
+                    onClose={() => setIsAuthPromptOpen(false)}
+                />
+            )}
 
         </div>
     );

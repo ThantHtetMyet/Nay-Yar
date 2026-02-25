@@ -8,12 +8,15 @@ const ConfirmModal = ({
     message,
     onConfirm,
     onCancel,
+    onClose,
+    onNeutral,
     title = 'Are you sure?',
     confirmText = 'Yes, Proceed',
     cancelText = 'Cancel',
-    type = 'danger' // 'danger' (red) or 'info' (blue)
+    neutralText = '',
+    type = 'danger'
 }) => (
-    <div className="conf-overlay" onClick={onCancel}>
+    <div className="conf-overlay" onClick={onClose || onCancel}>
         <div className="conf-card" onClick={e => e.stopPropagation()}>
             <div className={`conf-icon-wrap wrap-${type}`}>
                 <span className="conf-icon">{type === 'danger' ? '❓' : 'ℹ️'}</span>
@@ -22,6 +25,11 @@ const ConfirmModal = ({
             <p className="conf-message">{message}</p>
             <div className="conf-actions">
                 <button className="conf-cancel-btn" onClick={onCancel}>{cancelText}</button>
+                {neutralText ? (
+                    <button className="conf-neutral-btn" onClick={onNeutral || onClose || onCancel}>
+                        {neutralText}
+                    </button>
+                ) : null}
                 <button className={`conf-confirm-btn btn-${type}`} onClick={onConfirm}>
                     {confirmText}
                 </button>
