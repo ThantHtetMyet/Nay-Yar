@@ -115,7 +115,6 @@ const AuthPage = ({ initialMode = 'login' }) => {
     // --- Template ---
     return (
         <div className="auth-root">
-
             {/* The right-panel-active class here does the magic sliding */}
             <div className={`auth-card-container ${isSignUp ? 'right-panel-active' : ''}`} id="container">
 
@@ -154,7 +153,14 @@ const AuthPage = ({ initialMode = 'login' }) => {
                             <label className="auth-label">Confirm Password</label>
                         </div>
 
-                        <button className="auth-button" type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Sign Up'}</button>
+                        <div className="auth-action-row">
+                            <button className="auth-button" type="submit" disabled={loading}>
+                                {loading ? 'Creating account...' : 'Sign Up'}
+                            </button>
+                            <button className="auth-button auth-button-outline auth-signin-btn" type="button" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>
+                                Sign In
+                            </button>
+                        </div>
 
                         {/* Mobile Fallback */}
                         <div className="auth-switch-mobile" style={{ marginTop: '20px', display: 'none' }}>
@@ -178,7 +184,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                             <label className="auth-label">Password</label>
                         </div>
 
-                        <button className="auth-button" type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
+                        <button className="auth-button auth-signin-btn" type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
 
                         <div className="auth-footer-links">
                             <a className="auth-link cursor-pointer" onClick={() => { setIsSignUp(true); navigate('/signup'); }}>Sign Up</a>
@@ -201,7 +207,10 @@ const AuthPage = ({ initialMode = 'login' }) => {
                         <div className="auth-overlay-panel auth-overlay-left">
                             <h1 className="auth-title">Welcome Back!</h1>
                             <p className="auth-text">To keep booking rooms smoothly, please log in with your details.</p>
-                            <button className="auth-button ghost" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>Sign In</button>
+                            <button className="auth-button ghost auth-back-overlay" onClick={() => navigate('/')}>
+                                <span className="auth-back-icon">🗺️</span>
+                                <span className="auth-back-label">Back to map</span>
+                            </button>
                         </div>
 
                         {/* Overlay Right Content (Visible when Sign In active) */}
@@ -209,6 +218,10 @@ const AuthPage = ({ initialMode = 'login' }) => {
                             <Building3D />
                             <h1 className="auth-title">Hello, Friend!</h1>
                             <p className="auth-text">Nay-Yar is for everyone.</p>
+                            <button className="auth-button ghost auth-back-overlay" onClick={() => navigate('/')}>
+                                <span className="auth-back-icon">🗺️</span>
+                                <span className="auth-back-label">Back to map</span>
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -144,6 +144,61 @@ a.auth-link:hover::after {
     transform: translateY(-7px);
 }
 
+.auth-action-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-action-row .auth-button {
+    padding: 12px 28px;
+}
+
+.auth-button.auth-button-outline {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #1f2937;
+}
+
+.auth-button.auth-button-outline:hover {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.18);
+    color: #111827;
+}
+
+.auth-signin-btn:hover {
+    transform: translateY(-7px);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.11),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.auth-back-overlay {
+    margin-top: 14px;
+    width: 112px;
+    height: 112px;
+    padding: 10px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: none;
+}
+
+.auth-back-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.auth-back-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
 /* Form Styles */
 .auth-form {
     background-color: transparent !important;

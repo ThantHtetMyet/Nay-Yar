@@ -115,7 +115,7 @@ const PROPERTY_ICON = makePropertyIcon('PT001');
 const DefaultPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [user] = useState(() => {
+    const [user, setUser] = useState(() => {
         const stateUser = location.state?.user;
         if (stateUser) return stateUser;
         const sessionUser = sessionStorage.getItem('user');
@@ -669,9 +669,8 @@ const DefaultPage = () => {
 
     const confirmLogout = () => {
         sessionStorage.removeItem('user');
-        sessionStorage.removeItem('nayYarRegionSet');
-        sessionStorage.removeItem('nayYarCountry');
-        sessionStorage.removeItem('nayYarCountryGeo');
+        setUser(null);
+        closeModal();
         navigate('/');
     };
 
