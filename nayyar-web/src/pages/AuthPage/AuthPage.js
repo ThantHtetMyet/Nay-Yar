@@ -115,126 +115,79 @@ const AuthPage = ({ initialMode = 'login' }) => {
     // --- Template ---
     return (
         <div className="auth-root">
-            {/* The right-panel-active class here does the magic sliding */}
-            <div className={`auth-card-container ${isSignUp ? 'right-panel-active' : ''}`} id="container">
+            <div className="auth-card-container auth-single-column" id="container">
+                <div className="auth-hero">
+                    <Building3D />
+                    <h1 className="auth-title auth-brand-title">Nay-Yar</h1>
+                </div>
 
-                {/* --- Sign Up Container (Slides left, becomes visible) --- */}
-                <div className="auth-form-container auth-sign-up-container">
-                    <form className="auth-form" onSubmit={handleSignupSubmit} autoComplete="off">
-                        <h1 className="auth-title">Create Account</h1>
+                {isSignUp ? (
+                    <div className="auth-form-container auth-single-form">
+                        <form className="auth-form" onSubmit={handleSignupSubmit} autoComplete="off">
+                            <h1 className="auth-title">Create Account</h1>
 
-                        <div className="auth-form-row">
+                            <div className="auth-form-row">
+                                <div className="auth-form-group">
+                                    <input className="auth-input" type="text" name="userID" placeholder=" " value={signupData.userID} onChange={handleSignupChange} required />
+                                    <label className="auth-label">UserID</label>
+                                </div>
+                                <div className="auth-form-group">
+                                    <input className="auth-input" type="text" name="fullName" placeholder=" " value={signupData.fullName} onChange={handleSignupChange} required />
+                                    <label className="auth-label">Full Name</label>
+                                </div>
+                            </div>
+
                             <div className="auth-form-group">
-                                <input className="auth-input" type="text" name="userID" placeholder=" " value={signupData.userID} onChange={handleSignupChange} required />
+                                <input className="auth-input" type="email" name="email" placeholder=" " value={signupData.email} onChange={handleSignupChange} required />
+                                <label className="auth-label">Email</label>
+                            </div>
+
+                            <div className="auth-form-group">
+                                <input className="auth-input" type="tel" name="mobileNo" placeholder=" " value={signupData.mobileNo} onChange={handleSignupChange} required />
+                                <label className="auth-label">Mobile No</label>
+                            </div>
+
+                            <div className="auth-form-group">
+                                <input className="auth-input" type="password" name="loginPassword" placeholder=" " value={signupData.loginPassword} onChange={handleSignupChange} required />
+                                <label className="auth-label">Password</label>
+                            </div>
+                            <div className="auth-form-group">
+                                <input className="auth-input" type="password" name="confirmPassword" placeholder=" " value={signupData.confirmPassword} onChange={handleSignupChange} required />
+                                <label className="auth-label">Confirm Password</label>
+                            </div>
+
+                            <div className="auth-action-row">
+                                <button className="auth-button" type="submit" disabled={loading}>
+                                    {loading ? 'Creating account...' : 'Sign Up'}
+                                </button>
+                                <button className="auth-button auth-button-outline auth-signin-btn" type="button" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>
+                                    Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                ) : (
+                    <div className="auth-form-container auth-single-form">
+                        <form className="auth-form" onSubmit={handleLoginSubmit} autoComplete="off">
+                            <div className="auth-form-group">
+                                <input className="auth-input" type="text" name="userID" placeholder=" " value={loginData.userID} onChange={handleLoginChange} required />
                                 <label className="auth-label">UserID</label>
                             </div>
                             <div className="auth-form-group">
-                                <input className="auth-input" type="text" name="fullName" placeholder=" " value={signupData.fullName} onChange={handleSignupChange} required />
-                                <label className="auth-label">Full Name</label>
+                                <input className="auth-input" type="password" name="password" placeholder=" " value={loginData.password} onChange={handleLoginChange} required />
+                                <label className="auth-label">Password</label>
                             </div>
-                        </div>
 
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="email" name="email" placeholder=" " value={signupData.email} onChange={handleSignupChange} required />
-                            <label className="auth-label">Email</label>
-                        </div>
+                            <button className="auth-button auth-signin-btn" type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
 
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="tel" name="mobileNo" placeholder=" " value={signupData.mobileNo} onChange={handleSignupChange} required />
-                            <label className="auth-label">Mobile No</label>
-                        </div>
-
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="password" name="loginPassword" placeholder=" " value={signupData.loginPassword} onChange={handleSignupChange} required />
-                            <label className="auth-label">Password</label>
-                        </div>
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="password" name="confirmPassword" placeholder=" " value={signupData.confirmPassword} onChange={handleSignupChange} required />
-                            <label className="auth-label">Confirm Password</label>
-                        </div>
-
-                        <div className="auth-action-row">
-                            <button className="auth-button" type="submit" disabled={loading}>
-                                {loading ? 'Creating account...' : 'Sign Up'}
-                            </button>
-                            <button className="auth-button auth-button-outline auth-signin-btn" type="button" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>
-                                Sign In
-                            </button>
-                        </div>
-
-                        {/* Mobile Fallback */}
-                        <div className="auth-switch-mobile" style={{ marginTop: '20px', display: 'none' }}>
-                            <span style={{ color: 'var(--clr-muted)', fontSize: 13 }}>Already have an account? </span>
-                            <span className="auth-link" style={{ cursor: 'pointer' }} onClick={() => { setIsSignUp(false); navigate('/signin'); }}>Sign In</span>
-                        </div>
-                    </form>
-                </div>
-
-                {/* --- Sign In Container (Slides right, becomes invisible) --- */}
-                <div className="auth-form-container auth-sign-in-container">
-                    <form className="auth-form" onSubmit={handleLoginSubmit} autoComplete="off">
-                        <h1 className="auth-title">Sign in</h1>
-
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="text" name="userID" placeholder=" " value={loginData.userID} onChange={handleLoginChange} required />
-                            <label className="auth-label">UserID</label>
-                        </div>
-                        <div className="auth-form-group">
-                            <input className="auth-input" type="password" name="password" placeholder=" " value={loginData.password} onChange={handleLoginChange} required />
-                            <label className="auth-label">Password</label>
-                        </div>
-
-                        <button className="auth-button auth-signin-btn" type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
-
-                        <div className="auth-footer-links">
-                            <a className="auth-link cursor-pointer" onClick={() => { setIsSignUp(true); navigate('/signup'); }}>Sign Up</a>
-                            <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
-                        </div>
-
-                        {/* Mobile Fallback purely just to ensure logic translates if sliding door is disabled via CSS */}
-                        <div className="auth-switch-mobile" style={{ marginTop: '20px', display: 'none' }}>
-                            <span style={{ color: 'var(--clr-muted)', fontSize: 13 }}>Don't have an account? </span>
-                            <span className="auth-link cursor-pointer" onClick={() => { setIsSignUp(true); navigate('/signup'); }}>Sign Up</span>
-                        </div>
-
-                    </form>
-                </div>
-
-                {/* --- The Sliding Overlay Container --- */}
-                <div className="auth-overlay-container">
-                    <div className="auth-overlay">
-                        {/* Overlay Left Content (Visible when Sign Up active) */}
-                        <div className="auth-overlay-panel auth-overlay-left">
-                            <h1 className="auth-title">Welcome Back!</h1>
-                            <p className="auth-text">To keep booking rooms smoothly, please log in with your details.</p>
-                            <button className="auth-button ghost auth-back-overlay" onClick={() => navigate('/')}>
-                                <span className="auth-back-icon">🗺️</span>
-                                <span className="auth-back-label">Back to map</span>
-                            </button>
-                        </div>
-
-                        {/* Overlay Right Content (Visible when Sign In active) */}
-                        <div className="auth-overlay-panel auth-overlay-right">
-                            <Building3D />
-                            <h1 className="auth-title">Hello, Friend!</h1>
-                            <p className="auth-text">Nay-Yar is for everyone.</p>
-                            <button className="auth-button ghost auth-back-overlay" onClick={() => navigate('/')}>
-                                <span className="auth-back-icon">🗺️</span>
-                                <span className="auth-back-label">Back to map</span>
-                            </button>
-                        </div>
+                            <div className="auth-footer-links">
+                                <a className="auth-link cursor-pointer" onClick={() => { setIsSignUp(true); navigate('/signup'); }}>Sign Up</a>
+                                <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                )}
             </div>
-
-            {/* Injected style for mobile fallback visibility */}
-            <style>
-                {`
-                @media (max-width: 768px) {
-                    .auth-switch-mobile { display: block !important; }
-                }
-                `}
-            </style>
 
             <AlertModal
                 isOpen={modalConfig.isOpen}

@@ -10,8 +10,10 @@
 
 const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
 const isLocalhost = hostName === 'localhost' || hostName === '127.0.0.1';
-const DEFAULT_REMOTE_URL = 'https://nay-yar.onrender.com/api';
-const BASE_URL = process.env.REACT_APP_API_BASE || (isLocalhost ? 'http://localhost:5010/api' : DEFAULT_REMOTE_URL);
+//const DEFAULT_REMOTE_URL = 'https://nay-yar.onrender.com/api';
+const DEFAULT_REMOTE_URL = 'http://localhost:5010/api';
+//const BASE_URL = process.env.REACT_APP_API_BASE || (isLocalhost ? 'http://localhost:5010/api' : DEFAULT_REMOTE_URL);
+const BASE_URL =  'http://localhost:5010/api' ;
 
 // ── Utility ────────────────────────────────────────────────────
 const post = async (endpoint, body) => {
@@ -51,6 +53,16 @@ export const signupRaw = async (userData) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
+    });
+    const data = await res.json();
+    return { res, data };
+};
+
+export const resetPasswordRaw = async (payload) => {
+    const res = await fetch(`${BASE_URL}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
     });
     const data = await res.json();
     return { res, data };

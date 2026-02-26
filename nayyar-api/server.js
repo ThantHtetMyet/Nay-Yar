@@ -207,6 +207,38 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.post('/api/reset-password', async (req, res) => {
+    try {
+        const { userID, phone, newPassword } = req.body;
+        if (!userID || !phone || !newPassword) {
+            return res.status(400).json({ error: 'UserID, phone and new password are required.' });
+        }
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+        }
+
+        const normalizePhone = (value) => String(value || '').replace(/\D/g, '');
+        const db = await readUsersXML();
+        const users = db.Users.User;
+        const idx = users.findIndex(u =>
+            u.UserID.toLowerCase() === String(userID).toLowerCase() &&
+            normalizePhone(u.MobileNo) === normalizePhone(phone)
+        );
+        if (idx === -1) {
+            return res.status(404).json({ error: 'UserID and MobileNo are mismatched. please enter correct UserID and MobileNo.' });
+        }
+
+        users[idx].LoginPassword = newPassword;
+        users[idx].UpdatedDate = new Date().toISOString();
+        writeUsersXML(db);
+
+        return res.status(200).json({ success: true, message: 'Password reset successfully.' });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 app.post('/api/feedback', async (req, res) => {
     try {
         const {
