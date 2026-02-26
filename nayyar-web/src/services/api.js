@@ -8,7 +8,7 @@
  *   import { getPropertyTypes, createListing } from '../../services/api';
  */
 
-const BASE_URL = 'http://localhost:5010/api';
+const BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:5010/api';
 
 // ── Utility ────────────────────────────────────────────────────
 const post = async (endpoint, body) => {

@@ -6,7 +6,7 @@ const xml2js = require('xml2js');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 5010;
+const PORT = process.env.PORT || 5010;
 
 app.use(cors());
 app.use(express.json());

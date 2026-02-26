@@ -2,6 +2,7 @@
   "name": "nayyar-web",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
@@ -21,8 +22,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
   },
   "jest": {
     "moduleNameMapper": {
