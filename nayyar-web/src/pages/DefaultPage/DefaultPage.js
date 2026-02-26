@@ -4,7 +4,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import GlassIcon from './GlassIcon';
 import './DefaultPage.css';
-import GlobeIcon from './GlobeIcon';
 import CrudModal from '../../components/CrudModal/CrudModal';
 import CreatePostForm from '../PropertyPost/CreatePostForm';
 import PropertyDetail from '../PropertyPost/PropertyDetail';
@@ -128,16 +127,6 @@ const DefaultPage = () => {
     });
     const isLoggedIn = !!user;
 
-    // Country selection modal — shown only once per session
-    const [isModalOpen, setIsModalOpen] = useState(
-        () => !sessionStorage.getItem('nayYarRegionSet')
-    );
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState(
-        () => sessionStorage.getItem('nayYarCountry') || 'Singapore'
-    );
-    const [searchQuery, setSearchQuery] = useState('');
-    const [locating, setLocating] = useState(false);
     const [isLocatingUser, setIsLocatingUser] = useState(false);
 
     // CRUD modal
@@ -170,20 +159,6 @@ const DefaultPage = () => {
     const [isMrtDropdownOpen, setIsMrtDropdownOpen] = useState(false);
     const [selectedMrt, setSelectedMrt] = useState('Select MRT Station');
 
-    const countries = [
-        "Afghanistan", "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", "Bhutan",
-        "Brunei", "Cambodia", "China", "Cyprus", "Georgia", "India", "Indonesia",
-        "Iran", "Iraq", "Israel", "Japan", "Jordan", "Kazakhstan", "Kuwait",
-        "Kyrgyzstan", "Laos", "Lebanon", "Malaysia", "Maldives", "Mongolia",
-        "Myanmar", "Nepal", "North Korea", "Oman", "Pakistan", "Palestine",
-        "Philippines", "Qatar", "Russia", "Saudi Arabia", "Singapore", "South Korea",
-        "Sri Lanka", "Syria", "Taiwan", "Tajikistan", "Thailand", "Timor-Leste",
-        "Turkey", "Turkmenistan", "United Arab Emirates", "Uzbekistan", "Vietnam", "Yemen"
-    ];
-    const filteredCountries = countries.filter(c =>
-        c.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
     const filteredMrtStations = MRT_STATIONS.filter(s =>
         s.toLowerCase().includes(mrtQuery.toLowerCase())
     );
@@ -193,8 +168,8 @@ const DefaultPage = () => {
         if (!mapDivRef.current || leafletMapRef.current) return;
 
         const map = L.map(mapDivRef.current, {
-            center: [15, 100],   // center on Southeast Asia
-            zoom: 4,
+            center: [1.3521, 103.8198],
+            zoom: 11,
             zoomControl: true,
         });
 
@@ -223,7 +198,7 @@ const DefaultPage = () => {
             leafletMapRef.current.flyToBounds(
                 [[parseFloat(bb[0]), parseFloat(bb[2])],
                 [parseFloat(bb[1]), parseFloat(bb[3])]],
-                { padding: [50, 50], maxZoom: 13, duration: 1.5 }
+                { padding: [60, 60], maxZoom: 11, duration: 1.5 }
             );
         }
     }, [countryGeo]);
@@ -237,12 +212,18 @@ const DefaultPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // ── 3. Invalidate map size after the overlay closes ──────────────────
     useEffect(() => {
-        if (!isModalOpen && leafletMapRef.current) {
-            setTimeout(() => leafletMapRef.current?.invalidateSize(), 150);
-        }
-    }, [isModalOpen]);
+        if (sessionStorage.getItem('nayYarCountryGeo')) return;
+        const run = async () => {
+            const geo = await geocodeQuery('Singapore', 'sg');
+            if (geo) {
+                setCountryGeo(geo);
+                sessionStorage.setItem('nayYarCountry', 'Singapore');
+                sessionStorage.setItem('nayYarCountryGeo', JSON.stringify(geo));
+            }
+        };
+        run();
+    }, []);
 
     // ── 4. Load listings from API and geocode postal codes ───────────────
     useEffect(() => {
@@ -455,26 +436,6 @@ const DefaultPage = () => {
     }, [markerListings, focusPropertyId]);
 
     // ── Handlers ──────────────────────────────────────────────────────────
-    const handleLocate = async () => {
-        setLocating(true);
-        const geo = await geocodeQuery(selectedCountry, getCountryCode(selectedCountry));
-        if (geo) {
-            setCountryGeo(geo);
-            // Persist so the modal is skipped and position is restored on refresh
-            sessionStorage.setItem('nayYarRegionSet', '1');
-            sessionStorage.setItem('nayYarCountry', selectedCountry);
-            sessionStorage.setItem('nayYarCountryGeo', JSON.stringify(geo));
-        }
-        setLocating(false);
-        setIsModalOpen(false);
-    };
-
-    const handleSelectDropdown = (c) => {
-        setSelectedCountry(c);
-        setIsDropdownOpen(false);
-        setSearchQuery('');
-    };
-
     const openCreate = () => {
         setModalView('create');
         setActivePropertyId(null);
@@ -526,7 +487,6 @@ const DefaultPage = () => {
 
     const handleSearchMrt = async () => {
         if (selectedMrt === 'Select MRT Station') return;
-        setLocating(true);
         const geo = await geocodeQuery(selectedMrt + ', Singapore', 'sg');
 
         closeModal();
@@ -586,7 +546,6 @@ const DefaultPage = () => {
                     }
                 });
             }
-            setLocating(false);
         }, 150); // Small delay to let the modal disappear from the DOM
     };
 
@@ -694,54 +653,6 @@ const DefaultPage = () => {
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="default-page-root">
-
-            {/* ── Country Selection Modal ── */}
-            {isModalOpen && (
-                <div className="country-modal-overlay">
-                    <div className="country-modal-card">
-                        <GlobeIcon />
-                        <h2>Select Region</h2>
-                        <p>Which country do you want to explore?</p>
-
-                        <div className="custom-dropdown-container">
-                            <div className="dropdown-selected" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                                {selectedCountry}
-                                <span className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}>▼</span>
-                            </div>
-
-                            {isDropdownOpen && (
-                                <div className="dropdown-list-wrapper">
-                                    <div className="dropdown-search-box">
-                                        <input
-                                            type="text"
-                                            placeholder="Search country..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            autoFocus
-                                        />
-                                    </div>
-                                    <ul className="dropdown-list">
-                                        {filteredCountries.length > 0
-                                            ? filteredCountries.map(c => (
-                                                <li
-                                                    key={c}
-                                                    className={c === selectedCountry ? 'active' : ''}
-                                                    onClick={() => handleSelectDropdown(c)}
-                                                >{c}</li>
-                                            ))
-                                            : <li className="no-results">No countries found</li>
-                                        }
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        <button className="locate-btn" onClick={handleLocate} disabled={locating}>
-                            {locating ? 'Locating…' : 'Locate'}
-                        </button>
-                    </div>
-                </div>
-            )}
 
             <div className="dashboard-header">
                 <div className="header-menu">
