@@ -8,7 +8,10 @@
  *   import { getPropertyTypes, createListing } from '../../services/api';
  */
 
-const BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:5010/api';
+const hostName = typeof window !== 'undefined' ? window.location.hostname : '';
+const isLocalhost = hostName === 'localhost' || hostName === '127.0.0.1';
+const DEFAULT_REMOTE_URL = 'https://nay-yar.onrender.com/api';
+const BASE_URL = process.env.REACT_APP_API_BASE || (isLocalhost ? 'http://localhost:5010/api' : DEFAULT_REMOTE_URL);
 
 // ── Utility ────────────────────────────────────────────────────
 const post = async (endpoint, body) => {
