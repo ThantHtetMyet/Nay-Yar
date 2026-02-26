@@ -11,7 +11,7 @@ import EditPostForm from '../PropertyPost/EditPostForm';
 import UserPage from '../UserPage/UserPage';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
-import { getAllListings } from '../../services/api';
+import { getAllListings, submitFeedback } from '../../services/api';
 
 // ── Nominatim rate limiter (module-level, shared across all callers) ───────
 // Nominatim policy: max 1 request per second. Using a queue ensures that
@@ -134,6 +134,13 @@ const DefaultPage = () => {
     const [modalView, setModalView] = useState('create');
     const [activePropertyId, setActivePropertyId] = useState(null);
     const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+    const [feedbackForm, setFeedbackForm] = useState({
+        rating: 3,
+        message: '',
+        name: '',
+        phone: '',
+    });
 
     // Map state
     const [countryGeo, setCountryGeo] = useState(null); // geocoded result for selected country
@@ -472,6 +479,18 @@ const DefaultPage = () => {
         setIsCreatePostOpen(true);
     };
 
+    const openFeedback = () => {
+        setFeedbackForm({
+            rating: 3,
+            message: '',
+            name: user?.FullName || '',
+            phone: '',
+        });
+        setModalView('feedback');
+        setActivePropertyId(null);
+        setIsCreatePostOpen(true);
+    };
+
     // Reset MRT highlights and clear station marker
     const clearMrtSearch = () => {
         nearbyHighlightedRef.current.forEach(marker => {
@@ -643,19 +662,60 @@ const DefaultPage = () => {
         navigate('/signup');
     };
 
+    const handleFeedbackSubmit = async (event) => {
+        event.preventDefault();
+        if (isSubmittingFeedback) return;
+        setIsSubmittingFeedback(true);
+        const payload = {
+            rating: feedbackForm.rating,
+            message: feedbackForm.message,
+            name: feedbackForm.name,
+            phone: feedbackForm.phone,
+            userID: user?.UserID || '',
+            fullName: user?.FullName || '',
+            email: user?.Email || '',
+        };
+        try {
+            const res = await submitFeedback(payload);
+            if (res?.success) {
+                setIsCreatePostOpen(false);
+                setActivePropertyId(null);
+                setModalView('create');
+                setAppAlert({
+                    isOpen: true,
+                    type: 'success',
+                    title: 'Thank you!',
+                    message: 'Your feedback has been received.',
+                    focusId: null,
+                });
+            } else {
+                setAppAlert({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Feedback Failed',
+                    message: res?.error || 'Unable to send feedback. Please try again.',
+                    focusId: null,
+                });
+            }
+        } finally {
+            setIsSubmittingFeedback(false);
+        }
+    };
+
     const modalTitle = modalView === 'create' ? 'Create Property Listing'
         : modalView === 'edit' ? 'Edit Listing'
             : modalView === 'logout' ? 'Confirm Logout'
                 : modalView === 'search' ? 'Search Area'
-                    : modalView === 'user' ? 'My Account'
-                        : 'Listing Details';
+                    : modalView === 'feedback' ? 'Feedback'
+                        : modalView === 'user' ? 'My Account'
+                            : 'Listing Details';
 
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="default-page-root">
 
             <div className="dashboard-header">
-                <div className="header-menu">
+                <div className="header-menu header-menu-left">
                     <div className="menu-item-group" onClick={openCreateWithAuthCheck}>
                         <GlassIcon type="create" />
                         <span className="menu-label">Create Post</span>
@@ -681,6 +741,12 @@ const DefaultPage = () => {
                             <span className="menu-label">Sign-In</span>
                         </div>
                     )}
+                </div>
+                <div className="header-menu header-menu-right">
+                    <div className="menu-item-group" onClick={openFeedback}>
+                        <GlassIcon type="feedback" />
+                        <span className="menu-label">Feedback</span>
+                    </div>
                 </div>
             </div>
 
@@ -742,6 +808,76 @@ const DefaultPage = () => {
                         user={user}
                         onRefreshMap={() => setMarkersVersion(v => v + 1)}
                     />
+                )}
+                {modalView === 'feedback' && (
+                    <form className="feedback-form" onSubmit={handleFeedbackSubmit}>
+                        <div className="form-section">
+                            <p className="feedback-intro">Tell us how convenient this platform is and report any issues.</p>
+                            <div className="form-row">
+                                <div className="input-group">
+                                    <label>Rating</label>
+                                    <div className="feedback-rating">
+                                        {[1, 2, 3, 4, 5].map((value) => (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                className={`feedback-star ${feedbackForm.rating >= value ? 'active' : ''}`}
+                                                onClick={() => setFeedbackForm(f => ({ ...f, rating: value }))}
+                                            >
+                                                ★
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <span className="feedback-rating-text">
+                                        {feedbackForm.rating === 5 ? 'Very convenient'
+                                            : feedbackForm.rating === 4 ? 'Convenient'
+                                                : feedbackForm.rating === 3 ? 'Okay'
+                                                    : feedbackForm.rating === 2 ? 'Hard to use'
+                                                        : 'Not convenient'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="input-group">
+                                    <label>Name</label>
+                                    <input
+                                        type="text"
+                                        value={feedbackForm.name}
+                                        onChange={(e) => setFeedbackForm(f => ({ ...f, name: e.target.value }))}
+                                        placeholder="Your name"
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <label>Phone (optional)</label>
+                                    <input
+                                        type="tel"
+                                        value={feedbackForm.phone}
+                                        onChange={(e) => setFeedbackForm(f => ({ ...f, phone: e.target.value }))}
+                                        placeholder="Optional"
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="input-group">
+                                    <label>Feedback or issue details</label>
+                                    <textarea
+                                        rows="4"
+                                        value={feedbackForm.message}
+                                        onChange={(e) => setFeedbackForm(f => ({ ...f, message: e.target.value }))}
+                                        placeholder="Share your experience or describe the issue..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-actions feedback-actions">
+                            <button type="button" className="btn-cancel" onClick={closeModal} disabled={isSubmittingFeedback}>
+                                Cancel
+                            </button>
+                            <button type="submit" className="btn-submit" disabled={isSubmittingFeedback}>
+                                {isSubmittingFeedback ? 'Sending...' : 'Send Feedback'}
+                            </button>
+                        </div>
+                    </form>
                 )}
                 {modalView === 'logout' && (
                     <div className="logout-confirm-view">

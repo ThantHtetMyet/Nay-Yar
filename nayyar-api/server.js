@@ -16,6 +16,7 @@ app.get('/api/test', (req, res) => res.json({ status: 'ok', time: new Date().toI
 // ─── File Paths ───────────────────────────────────────────────────────────────
 const USER_DB_PATH = path.join(__dirname, 'Database', 'user_data.xml');
 const LISTING_DB_PATH = path.join(__dirname, 'Database', 'property_data.xml');
+const FEEDBACK_DB_PATH = path.join(__dirname, 'Database', 'feedback_data.xml');
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const readUsersXML = async () => {
@@ -66,6 +67,30 @@ const writeListingsXML = (dataObj) => {
     const builder = new xml2js.Builder();
     const xml = builder.buildObject(dataObj);
     fs.writeFileSync(LISTING_DB_PATH, xml);
+};
+
+const readFeedbackXML = async () => {
+    try {
+        if (!fs.existsSync(FEEDBACK_DB_PATH)) return { Feedbacks: { Feedback: [] } };
+        const xmlData = fs.readFileSync(FEEDBACK_DB_PATH, 'utf-8');
+        if (!xmlData.trim()) return { Feedbacks: { Feedback: [] } };
+        const parser = new xml2js.Parser({ explicitArray: false });
+        const result = await parser.parseStringPromise(xmlData);
+        if (!result || !result.Feedbacks) return { Feedbacks: { Feedback: [] } };
+        if (result.Feedbacks.Feedback && !Array.isArray(result.Feedbacks.Feedback))
+            result.Feedbacks.Feedback = [result.Feedbacks.Feedback];
+        if (!result.Feedbacks.Feedback) result.Feedbacks.Feedback = [];
+        return result;
+    } catch (error) {
+        console.error('Error reading feedback XML:', error);
+        return { Feedbacks: { Feedback: [] } };
+    }
+};
+
+const writeFeedbackXML = (dataObj) => {
+    const builder = new xml2js.Builder();
+    const xml = builder.buildObject(dataObj);
+    fs.writeFileSync(FEEDBACK_DB_PATH, xml);
 };
 
 // Generic dropdown reader
@@ -178,6 +203,46 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/feedback', async (req, res) => {
+    try {
+        const {
+            rating,
+            message,
+            name,
+            phone,
+            userID,
+            fullName,
+            email,
+        } = req.body;
+
+        if (!rating || Number(rating) < 1 || Number(rating) > 5) {
+            return res.status(400).json({ error: 'Rating must be between 1 and 5.' });
+        }
+
+        const db = await readFeedbackXML();
+        const now = new Date().toISOString();
+        const newFeedback = {
+            FeedbackID: crypto.randomUUID(),
+            Rating: String(rating),
+            Message: message || '',
+            Name: name || fullName || '',
+            Phone: phone || '',
+            UserID: userID || '',
+            FullName: fullName || '',
+            Email: email || '',
+            CreatedDate: now,
+            IsResolved: 'false',
+        };
+
+        db.Feedbacks.Feedback.push(newFeedback);
+        writeFeedbackXML(db);
+        return res.status(201).json({ success: true, data: newFeedback });
+    } catch (error) {
+        console.error('Error creating feedback:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

@@ -265,8 +265,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.7);
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    /* Start from left */
+    justify-content: space-between;
     padding: 0 40px;
     z-index: 10;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07),
@@ -281,6 +280,10 @@
     justify-content: flex-start;
     gap: 30px;
     /* Adjusted gap */
+}
+
+.header-menu-right {
+    justify-content: flex-end;
 }
 
 .menu-item-group {
@@ -762,7 +765,14 @@
     .header-menu {
         gap: 10px;
         flex: 1;
-        justify-content: center;
+    }
+
+    .header-menu-left {
+        justify-content: flex-start;
+    }
+
+    .header-menu-right {
+        justify-content: flex-end;
     }
 
     .menu-item-group {
@@ -913,4 +923,115 @@
     .logout-btn-yes {
         width: 100%;
     }
+}
+
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.feedback-intro {
+    margin: 0 0 16px 0;
+    color: #5c6880;
+    font-size: 0.92rem;
+}
+
+.feedback-radio-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.feedback-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    transition: all 0.2s ease;
+}
+
+.feedback-radio-option input {
+    margin: 0;
+}
+
+.feedback-radio-option.selected {
+    background: rgba(78, 128, 240, 0.15);
+    border-color: rgba(78, 128, 240, 0.35);
+    color: #1c2433;
+}
+
+.feedback-rating {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.feedback-star {
+    border: none;
+    background: rgba(255, 255, 255, 0.6);
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #cbd5f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.feedback-star.active {
+    color: #f59e0b;
+    background: rgba(251, 191, 36, 0.2);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.feedback-star:hover {
+    transform: translateY(-2px);
+}
+
+.feedback-rating-text {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    color: #4b5563;
+    font-weight: 600;
+}
+
+.feedback-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    /* We want them to fill the space since they are flex: 1 anyway */
+}
+
+.feedback-actions .btn-cancel,
+.feedback-actions .btn-submit {
+    flex: 1;
+    height: 50px;
+    min-height: 50px;
+    max-height: 50px;
+    box-sizing: border-box;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 20px;
+    margin: 0;
+    position: relative;
+    top: 0;
+    transform: none !important;
+    /* Prevent any bleed-over transforms */
 }

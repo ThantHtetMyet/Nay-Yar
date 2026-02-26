@@ -64,6 +64,10 @@
     /* Green */
 }
 
+.feedback .glass-base {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
 /* Vector Drawings inside the Frosted layer */
 .user-vector {
     display: flex;
@@ -168,4 +172,49 @@
     right: 0;
     top: -4px;
     border-radius: 1px;
+}
+
+.feedback-vector {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-bubble {
+    width: 16px;
+    height: 12px;
+    border: 2px solid #ffffff;
+    border-radius: 6px;
+    position: relative;
+    background: transparent;
+}
+
+.feedback-tail {
+    position: absolute;
+    bottom: 1px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
+    transform: rotate(-45deg);
+    border-radius: 1px;
+}
+
+.feedback-line {
+    height: 2px;
+    background: #ffffff;
+    border-radius: 2px;
+    margin: 2px 2px;
+}
+
+.feedback-line.line-1 {
+    width: 10px;
+}
+
+.feedback-line.line-2 {
+    width: 7px;
 }

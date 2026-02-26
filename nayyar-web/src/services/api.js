@@ -101,3 +101,5 @@ export const reopenListing = async (id) => {
     const res = await fetch(`${BASE_URL}/listings/${id}/reopen`, { method: 'PATCH' });
     return res.json();
 };
+
+export const submitFeedback = (payload) => post('feedback', payload);

@@ -30,6 +30,15 @@ const GlassIcon = ({ type, initial }) => {
                         <div className="logout-arrow"></div>
                     </div>
                 )}
+                {type === 'feedback' && (
+                    <div className="icon-vector feedback-vector">
+                        <div className="feedback-bubble">
+                            <div className="feedback-line line-1"></div>
+                            <div className="feedback-line line-2"></div>
+                        </div>
+                        <div className="feedback-tail"></div>
+                    </div>
+                )}
             </div>
         </div>
     );
