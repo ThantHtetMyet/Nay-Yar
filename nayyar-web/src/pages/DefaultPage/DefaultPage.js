@@ -227,38 +227,52 @@ const DefaultPage = () => {
         const updateAppHeight = () => {
             const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             document.documentElement.style.setProperty('--app-height', `${height}px`);
+            
+            // Critical fix for iOS: Force scroll to top to prevent the "jump" or ghost scroll 
+            // that often happens when returning from a page that had a keyboard open.
             if (window.scrollY !== 0) {
                 window.scrollTo(0, 0);
             }
+            
             if (leafletMapRef.current) {
                 leafletMapRef.current.invalidateSize();
             }
         };
+
         const root = document.documentElement;
         const prevRootHeight = root.style.height;
         const prevBodyHeight = document.body.style.height;
         const prevBodyOverflow = document.body.style.overflow;
+        
+        // Ensure root and body don't have conflicting height/overflow during mount
         root.style.height = 'var(--app-height, 100dvh)';
         document.body.style.height = 'var(--app-height, 100dvh)';
         document.body.style.overflow = 'hidden';
 
         updateAppHeight();
+        
+        // Multiple timeouts to catch keyboard closing / browser chrome transitions
         const timeouts = [
             setTimeout(updateAppHeight, 50),
-            setTimeout(updateAppHeight, 250),
+            setTimeout(updateAppHeight, 150),
+            setTimeout(updateAppHeight, 300),
             setTimeout(updateAppHeight, 600),
             setTimeout(updateAppHeight, 1000),
+            setTimeout(updateAppHeight, 2000), // Catch slow keyboard animations
         ];
+
         const viewport = window.visualViewport;
         window.addEventListener('resize', updateAppHeight);
         window.addEventListener('orientationchange', updateAppHeight);
         window.addEventListener('pageshow', updateAppHeight);
         window.addEventListener('focus', updateAppHeight);
         document.addEventListener('visibilitychange', updateAppHeight);
+        
         if (viewport) {
             viewport.addEventListener('resize', updateAppHeight);
             viewport.addEventListener('scroll', updateAppHeight);
         }
+
         return () => {
             window.removeEventListener('resize', updateAppHeight);
             window.removeEventListener('orientationchange', updateAppHeight);
