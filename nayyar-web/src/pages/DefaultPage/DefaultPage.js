@@ -246,7 +246,7 @@ const DefaultPage = () => {
 
         const map = L.map(mapDivRef.current, {
             center: [1.3521, 103.8198],
-            zoom: 11,
+            zoom: 12,
             zoomControl: true,
         });
 
@@ -271,11 +271,16 @@ const DefaultPage = () => {
     useEffect(() => {
         if (!countryGeo || !leafletMapRef.current) return;
         const bb = countryGeo.boundingbox; // [minLat, maxLat, minLon, maxLon]
+        const savedCountry = sessionStorage.getItem('nayYarCountry');
+        if (savedCountry && savedCountry.toLowerCase() === 'singapore') {
+            leafletMapRef.current.flyTo([1.3521, 103.8198], 12, { duration: 1.5 });
+            return;
+        }
         if (bb) {
             leafletMapRef.current.flyToBounds(
                 [[parseFloat(bb[0]), parseFloat(bb[2])],
                 [parseFloat(bb[1]), parseFloat(bb[3])]],
-                { padding: [60, 60], maxZoom: 11, duration: 1.5 }
+                { padding: [60, 60], maxZoom: 12, duration: 1.5 }
             );
         }
     }, [countryGeo]);
@@ -998,7 +1003,8 @@ const DefaultPage = () => {
         <div className="default-page-root">
 
             <div className="dashboard-header">
-                <div className="header-menu header-menu-left">
+                <div className="header-scroll">
+                    <div className="header-menu header-menu-left">
                     <div className="menu-item-group" onClick={openCreateWithAuthCheck} data-label="Create Post">
                         <GlassIcon type="create" />
                         <span className="menu-label">Create Post</span>
@@ -1024,17 +1030,18 @@ const DefaultPage = () => {
                             <span className="menu-label">Sign-In</span>
                         </div>
                     )}
-                </div>
-                <div className="header-menu header-menu-right">
-                    {isFeedbackAdmin && (
-                        <div className="menu-item-group" onClick={openAdmin} data-label="Admin">
-                            <GlassIcon type="user" initial="A" />
-                            <span className="menu-label">Admin</span>
+                    </div>
+                    <div className="header-menu header-menu-right">
+                        {isFeedbackAdmin && (
+                            <div className="menu-item-group" onClick={openAdmin} data-label="Admin">
+                                <GlassIcon type="user" initial="A" />
+                                <span className="menu-label">Admin</span>
+                            </div>
+                        )}
+                        <div className="menu-item-group" onClick={openFeedback} data-label="Feedback">
+                            <GlassIcon type="feedback" />
+                            <span className="menu-label">Feedback</span>
                         </div>
-                    )}
-                    <div className="menu-item-group" onClick={openFeedback} data-label="Feedback">
-                        <GlassIcon type="feedback" />
-                        <span className="menu-label">Feedback</span>
                     </div>
                 </div>
             </div>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import Building3D from '../../components/Building3D';
 import AlertModal from '../../components/AlertModal';
 import './AuthPage.css';
 import { loginRaw, signupRaw, trackLinkHit } from '../../services/api';
+import marinaBaySandsImg from '../../images/MarinaBaySandsHotel.png';
 
 const AuthPage = ({ initialMode = 'login' }) => {
     const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
@@ -67,8 +67,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
             sessionStorage.setItem('user', JSON.stringify(data.user));
 
             // Navigate instantly upon successful login
-            const basePath = process.env.PUBLIC_URL || '';
-            window.location.href = `${window.location.origin}${basePath}/`;
+            navigate('/', { replace: true });
 
         } catch (err) {
             setLoading(false);
@@ -121,7 +120,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                 <button type="button" className="auth-close-button" data-label="Back to Map" aria-label="Back to Map" onClick={() => navigate('/')}>×</button>
                 <div className="auth-header-section">
                     <div className="auth-hero">
-                        <Building3D />
+                        <img src={marinaBaySandsImg} alt="Marina Bay Sands" className="auth-hero-image" />
                         <h1 className="auth-brand-title">Nay-Yar</h1>
                     </div>
                     {/* SVG Wave Shape to transition between header and body */}

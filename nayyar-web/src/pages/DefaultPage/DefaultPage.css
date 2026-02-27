@@ -281,6 +281,21 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
+.header-scroll {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.header-scroll::-webkit-scrollbar {
+    display: none;
+}
+
 /* Operations Menu */
 .header-menu {
     display: flex;
@@ -289,10 +304,13 @@
     justify-content: flex-start;
     gap: 30px;
     /* Adjusted gap */
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
 }
 
 .header-menu-right {
     justify-content: flex-end;
+    margin-left: auto;
 }
 
 .menu-item-group {
