@@ -167,7 +167,7 @@ const DefaultPage = () => {
 
     // Success Alert state — focusId is set here so the map refresh and the
     // focus step don't interfere with each other.
-    const [appAlert, setAppAlert] = useState({ isOpen: false, type: 'success', title: '', message: '', focusId: null, actionText: '', onAction: null });
+    const [appAlert, setAppAlert] = useState({ isOpen: false, type: 'success', title: '', message: '', focusId: null, actionText: '', onAction: null, cancelText: '', onCancel: null, showConfirm: true });
 
     // Refs — Leaflet operates on the real DOM
     const mapDivRef = useRef(null);
@@ -798,18 +798,30 @@ const DefaultPage = () => {
                 setIsLocatingUser(false);
             },
             (err) => {
-                console.error('Geolocation error:', err);
+                // console.error('Geolocation error:', err);
+                const isBlocked = err.code === 1;
+                const title = isBlocked ? 'Location Access Denied' : 'Location Error';
+                const message = isBlocked 
+                    ? 'Location access is blocked. Please enable it in your browser settings (click the 🔒 or ⓘ icon in the address bar).' 
+                    : 'Unable to retrieve your location. Check browser permissions.';
+                
                 setAppAlert({
                     isOpen: true,
                     type: 'error',
-                    title: 'Location Error',
-                    message: 'Unable to retrieve your location. Check browser permissions.',
+                    title: title,
+                    message: message,
                     focusId: null,
-                    actionText: 'Allow Location',
+                    actionText: 'ALLOW LOCATION',
                     onAction: () => {
-                        setAppAlert(a => ({ ...a, isOpen: false, actionText: '', onAction: null }));
+                        setAppAlert(a => ({ ...a, isOpen: false, actionText: '', onAction: null, cancelText: '', onCancel: null, showConfirm: true }));
                         handleGetUserLocation();
                     },
+                    cancelText: 'Cancel',
+                    onCancel: () => {
+                        setAppAlert(a => ({ ...a, isOpen: false, actionText: '', onAction: null, cancelText: '', onCancel: null, showConfirm: true }));
+                        navigate('/');
+                    },
+                    showConfirm: false,
                 });
                 setIsLocatingUser(false);
             },
@@ -1435,9 +1447,12 @@ const DefaultPage = () => {
                 message={appAlert.message}
                 actionText={appAlert.actionText}
                 onAction={appAlert.onAction}
+                cancelText={appAlert.cancelText}
+                onCancel={appAlert.onCancel}
+                showConfirm={appAlert.showConfirm}
                 onClose={() => {
                     const fid = appAlert.focusId;
-                    setAppAlert(a => ({ ...a, isOpen: false, focusId: null, actionText: '', onAction: null }));
+                    setAppAlert(a => ({ ...a, isOpen: false, focusId: null, actionText: '', onAction: null, cancelText: '', onCancel: null, showConfirm: true }));
                     if (fid) setFocusPropertyId(fid);
                 }}
             />

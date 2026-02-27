@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './AlertModal.css';
 
-const AlertModal = ({ isOpen, type = 'info', title, message, onClose, actionText, onAction }) => {
+const AlertModal = ({ isOpen, type = 'info', title, message, onClose, actionText, onAction, cancelText, onCancel, showConfirm = true, confirmText = 'Confirm' }) => {
     if (!isOpen) return null;
 
     // Determine icon based on type
@@ -30,9 +30,16 @@ const AlertModal = ({ isOpen, type = 'info', title, message, onClose, actionText
                             {actionText}
                         </button>
                     ) : null}
-                    <button className={`alert-btn alert-btn-${type}`} onClick={onClose}>
-                        Confirm
-                    </button>
+                    {cancelText ? (
+                        <button className="alert-btn alert-btn-cancel" onClick={onCancel}>
+                            {cancelText}
+                        </button>
+                    ) : null}
+                    {showConfirm ? (
+                        <button className={`alert-btn alert-btn-${type}`} onClick={onClose}>
+                            {confirmText}
+                        </button>
+                    ) : null}
                 </div>
             </div>
         </div>,

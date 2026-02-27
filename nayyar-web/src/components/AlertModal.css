@@ -110,7 +110,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .alert-btn {
@@ -123,7 +123,7 @@
     font-family: 'Outfit', sans-serif;
     font-size: 13px;
     font-weight: bold;
-    padding: 12px 40px;
+    padding: 12px 24px;
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
@@ -151,6 +151,11 @@
 .alert-btn-action {
     background: rgba(78, 128, 240, 0.18);
     color: #1e3a8a;
+}
+
+.alert-btn-cancel {
+    background: rgba(226, 232, 240, 0.5);
+    color: #475569;
 }
 
 /* Theme Colors - Unified System Branding */
