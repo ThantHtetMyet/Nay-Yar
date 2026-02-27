@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "./static/css/main.1d96cab2.css",
-    "main.js": "./static/js/main.70128b30.js",
+    "main.css": "./static/css/main.ac7c6da7.css",
+    "main.js": "./static/js/main.7f454ccc.js",
     "static/js/206.708dac07.chunk.js": "./static/js/206.708dac07.chunk.js",
     "static/media/MarinaBaySandsHotel.png": "./static/media/MarinaBaySandsHotel.3385d91f39fd36b90112.png",
     "index.html": "./index.html"
   },
   "entrypoints": [
-    "static/css/main.1d96cab2.css",
-    "static/js/main.70128b30.js"
+    "static/css/main.ac7c6da7.css",
+    "static/js/main.7f454ccc.js"
   ]
 }
