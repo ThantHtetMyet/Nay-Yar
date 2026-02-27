@@ -228,50 +228,21 @@ const DefaultPage = () => {
             const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             document.documentElement.style.setProperty('--app-height', `${height}px`);
 
-            // Aggressive scroll reset for mobile browsers
+            // Standard reset
             window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
 
             if (leafletMapRef.current) {
                 leafletMapRef.current.invalidateSize();
             }
         };
 
-        const root = document.documentElement;
-        const body = document.body;
-
-        const prevRootHeight = root.style.height;
-        const prevRootPos = root.style.position;
-        const prevRootOverflow = root.style.overflow;
-
-        const prevBodyHeight = body.style.height;
-        const prevBodyOverflow = body.style.overflow;
-        const prevBodyPos = body.style.position;
-        const prevBodyWidth = body.style.width;
-
-        // Nuclear option for iOS: Pin body and html to prevent any background scroll "jumps"
-        root.style.height = 'var(--app-height, 100dvh)';
-        root.style.position = 'fixed';
-        root.style.top = '0';
-        root.style.left = '0';
-        root.style.right = '0';
-        root.style.overflow = 'hidden';
-
-        body.style.height = 'var(--app-height, 100dvh)';
-        body.style.overflow = 'hidden';
-        body.style.position = 'fixed';
-        body.style.width = '100%';
-        body.style.top = '0';
-
         updateAppHeight();
 
         const timeouts = [
             setTimeout(updateAppHeight, 50),
             setTimeout(updateAppHeight, 150),
-            setTimeout(updateAppHeight, 300),
-            setTimeout(updateAppHeight, 600),
+            setTimeout(updateAppHeight, 500),
             setTimeout(updateAppHeight, 1000),
-            setTimeout(updateAppHeight, 2000),
         ];
 
         const viewport = window.visualViewport;
@@ -297,15 +268,6 @@ const DefaultPage = () => {
                 viewport.removeEventListener('scroll', updateAppHeight);
             }
             timeouts.forEach(clearTimeout);
-
-            root.style.height = prevRootHeight;
-            root.style.position = prevRootPos;
-            root.style.overflow = prevRootOverflow;
-
-            body.style.height = prevBodyHeight;
-            body.style.overflow = prevBodyOverflow;
-            body.style.position = prevBodyPos;
-            body.style.width = prevBodyWidth;
         };
     }, []);
 

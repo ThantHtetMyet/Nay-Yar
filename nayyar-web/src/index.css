@@ -39,11 +39,20 @@
   padding: 0;
 }
 
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /* Prevent touch "bounce" on mobile */
+  overscroll-behavior: none;
+}
+
 body {
   font-family: 'Outfit', sans-serif;
   background: var(--clr-bg);
   color: var(--clr-text);
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
