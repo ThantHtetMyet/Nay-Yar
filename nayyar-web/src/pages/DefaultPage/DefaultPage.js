@@ -1054,6 +1054,14 @@ const DefaultPage = () => {
         action();
     };
 
+    // ── Zoom Handlers ──────────────────────────────────────────────────────
+    const handleZoomIn = () => {
+        if (leafletMapRef.current) leafletMapRef.current.zoomIn();
+    };
+    const handleZoomOut = () => {
+        if (leafletMapRef.current) leafletMapRef.current.zoomOut();
+    };
+
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="default-page-root">
@@ -1108,46 +1116,60 @@ const DefaultPage = () => {
                     </div>
                 </div>
             )}
-            {!isQuickMenuOpen && (
-                <div className="quick-menu">
-                    <button
-                        type="button"
-                        className="quick-menu-toggle"
-                        onClick={() => setIsQuickMenuOpen((prev) => !prev)}
-                    >
-                        <span className="quick-menu-icon" />
-                        <span className="quick-menu-text">Menu</span>
-                    </button>
-                </div>
-            )}
 
-            {/* ── Leaflet Map ── */}
             {/* ── Leaflet Map ── */}
             <div className="map-container">
                 <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
+
                 {copyToast.isOpen && (
                     <div className="copy-toast">
                         <span>{copyToast.message}</span>
                     </div>
                 )}
 
-                <div className="map-controls-group">
-                    {isLocatingUser && (
-                        <div className="loc-status-toast">
-                            <div className="status-pulse-dot"></div>
-                            Getting Location...
+                {isLocatingUser && (
+                    <div className="loc-status-toast">
+                        <div className="status-pulse-dot"></div>
+                        Getting Location...
+                    </div>
+                )}
+
+                {/* ── NEW BOTTOM CONTROLS ROW ── */}
+                <div className="bottom-controls-bar">
+                    {/* LEFT: Combined Zoom Control */}
+                    <div className="zoom-controls-combined">
+                        <div className="premium-orb-btn zoom-combined-orb">
+                            <button type="button" className="zoom-part" onClick={handleZoomIn} aria-label="Zoom In">+</button>
+                            <div className="zoom-divider-line"></div>
+                            <button type="button" className="zoom-part" onClick={handleZoomOut} aria-label="Zoom Out">−</button>
+                        </div>
+                    </div>
+
+                    {/* CENTER: Menu Toggle */}
+                    {!isQuickMenuOpen && (
+                        <div className="quick-menu-center">
+                            <button
+                                type="button"
+                                className="premium-orb-btn quick-menu-toggle"
+                                onClick={() => setIsQuickMenuOpen((prev) => !prev)}
+                            >
+                                <span className="quick-menu-icon" />
+                                <span className="quick-menu-text" style={{ color: '#ffffff' }}>Menu</span>
+                            </button>
                         </div>
                     )}
-                    <div className="loc-btn-wrapper">
-                        <div className="loc-premium-tooltip">Show your location</div>
+
+                    {/* RIGHT: Locate Button */}
+                    <div className="locate-control-right">
                         <button
-                            className={`user-location-btn ${isLocatingUser ? 'locating' : ''}`}
+                            className={`premium-orb-btn user-location-btn ${isLocatingUser ? 'locating' : ''}`}
                             onClick={handleGetUserLocation}
+                            aria-label="Find my location"
                         >
                             {isLocatingUser ? (
                                 <div className="btn-spinner"></div>
                             ) : (
-                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                                     <circle cx="12" cy="10" r="3" />
                                 </svg>
@@ -1156,6 +1178,7 @@ const DefaultPage = () => {
                     </div>
                 </div>
             </div>
+
 
             {/* ── CRUD Modal ── */}
             <CrudModal isOpen={isCreatePostOpen} onClose={closeModal} title={modalTitle} overflowVisible={modalView === 'search'}>

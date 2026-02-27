@@ -312,46 +312,51 @@
     justify-content: center;
 }
 
-.quick-menu {
-    position: fixed;
+/* ─── BOTTOM CONTROLS BAR (Horizontal Row) ─── */
+.bottom-controls-bar {
+    position: absolute;
     bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 20px;
-    z-index: 1900;
+    left: 0;
+    right: 0;
+    padding: 0 20px;
+    z-index: 2000;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+    /* Let clicks pass to map if not on buttons */
 }
 
-.quick-menu-toggle {
+.bottom-controls-bar>* {
+    pointer-events: auto;
+    /* Re-enable clicks for button groups */
+}
+
+/* Base style for all map orb buttons */
+.premium-orb-btn {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 24px;
-    border-radius: 999px;
+    justify-content: center;
     background: rgba(15, 23, 42, 0.95);
     color: #f8fafc;
-    font-weight: 700;
-    font-size: 1.05rem;
+    border-radius: 999px;
+    border: none;
     cursor: pointer;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    overflow: hidden;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    overflow: hidden;
-    /* Clip the rotating border */
-    border: none;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.quick-menu-toggle::before {
+.premium-orb-btn::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 250px;
-    /* Large enough to cover rotation */
-    height: 250px;
+    width: 200px;
+    height: 200px;
     transform: translate(-50%, -50%);
     background: conic-gradient(from 0deg,
             #22d3ee,
@@ -364,20 +369,22 @@
     z-index: 0;
 }
 
-/* Inner overlay to give the "border" effect */
-.quick-menu-toggle::after {
+.premium-orb-btn::after {
     content: '';
     position: absolute;
     inset: 2px;
-    /* This creates a 2px border effect */
-    background: rgba(15, 23, 42, 0.9);
-    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: inherit;
     z-index: 1;
 }
 
-.quick-menu-toggle>* {
+.premium-orb-btn>* {
     position: relative;
     z-index: 2;
+}
+
+.premium-orb-btn:active {
+    transform: scale(0.92);
 }
 
 @keyframes rotate-border {
@@ -390,8 +397,28 @@
     }
 }
 
-.quick-menu-toggle:active {
-    transform: scale(0.95);
+/* Zoom Combined Specific Coverage */
+.zoom-combined-orb::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Menu Specific */
+.quick-menu-toggle {
+    padding: 14px 24px;
+    gap: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* Locate Specific */
+.user-location-btn {
+    width: 52px;
+    height: 52px;
+}
+
+.user-location-btn svg {
+    display: block;
 }
 
 .quick-menu-icon {
@@ -618,43 +645,74 @@
     }
 }
 
-/* User Location Controls */
-.map-controls-group {
-    position: absolute;
-    left: 20px;
-    bottom: calc(90px + env(safe-area-inset-bottom));
-    z-index: 1000;
+/* Combined Zoom Orb Styling */
+.zoom-combined-orb {
+    height: 52px;
+    padding: 0;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-/* Offset Leaflet zoom controls to be above our custom buttons */
-.leaflet-bottom.leaflet-left {
-    margin-bottom: 145px !important;
-    margin-left: 14px !important;
-}
-
-.leaflet-control-zoom {
-    border: 1px solid rgba(0, 0, 0, 0.2) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    border-radius: 8px !important;
+    align-items: center;
     overflow: hidden;
 }
 
-.leaflet-control-zoom a {
-    background-color: #fff !important;
-    color: #333 !important;
-    border-bottom: 1px solid #ccc !important;
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
+.zoom-part {
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.leaflet-control-zoom a:last-child {
-    border-bottom: none !important;
+.zoom-part:active {
+    background: rgba(255, 255, 255, 0.1);
 }
+
+.zoom-divider-line {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+/* Ensure locate button icons are white */
+.user-location-btn {
+    width: 52px;
+    height: 52px;
+    color: #ffffff !important;
+}
+
+.user-location-btn svg {
+    display: block;
+    stroke: #ffffff !important;
+}
+
+/* Explicitly hide native Leaflet zoom to prevent background leakage */
+.leaflet-control-zoom,
+.leaflet-top.leaflet-left,
+.leaflet-bottom.leaflet-left {
+    display: none !important;
+}
+
+/* Menu Toggle Center Wrapper */
+.quick-menu-center {
+    display: flex;
+    justify-content: center;
+}
+
+/* Locate Button Right Wrapper */
+.locate-control-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
 
 .loc-status-toast {
     position: fixed;
@@ -1117,14 +1175,28 @@
         font-size: 0.85rem;
     }
 
-    .map-controls-group {
-        bottom: calc(85px + env(safe-area-inset-bottom));
-        left: 14px;
+    .bottom-controls-bar {
+        padding: 0 12px;
+        bottom: calc(15px + env(safe-area-inset-bottom));
     }
 
-    .quick-menu {
-        bottom: calc(16px + env(safe-area-inset-bottom));
-        left: 14px;
+    .zoom-combined-orb {
+        height: 44px;
+    }
+
+    .zoom-part {
+        font-size: 1.2rem;
+        padding: 0 14px;
+    }
+
+    .quick-menu-toggle {
+        padding: 12px 18px;
+        font-size: 0.95rem;
+    }
+
+    .user-location-btn {
+        width: 48px;
+        height: 48px;
     }
 
     .header-user {
