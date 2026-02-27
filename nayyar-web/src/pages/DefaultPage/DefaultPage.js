@@ -999,27 +999,27 @@ const DefaultPage = () => {
 
             <div className="dashboard-header">
                 <div className="header-menu header-menu-left">
-                    <div className="menu-item-group" onClick={openCreateWithAuthCheck} title="Create Post">
+                    <div className="menu-item-group" onClick={openCreateWithAuthCheck} data-label="Create Post">
                         <GlassIcon type="create" />
                         <span className="menu-label">Create Post</span>
                     </div>
-                    <div className="menu-item-group" onClick={openSearch} title="Search">
+                    <div className="menu-item-group" onClick={openSearch} data-label="Search">
                         <GlassIcon type="search" />
                         <span className="menu-label">Search</span>
                     </div>
                     {isLoggedIn ? (
                         <>
-                            <div className="menu-item-group" onClick={openMyProfile} title="Account">
+                            <div className="menu-item-group" onClick={openMyProfile} data-label="Account">
                                 <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
                                 <span className="menu-label">Account</span>
                             </div>
-                            <div className="menu-item-group" onClick={handleLogout} title="Logout">
+                            <div className="menu-item-group" onClick={handleLogout} data-label="Logout">
                                 <GlassIcon type="logout" />
                                 <span className="menu-label">Logout</span>
                             </div>
                         </>
                     ) : (
-                        <div className="menu-item-group" onClick={handleLoginNavigate} title="Sign-In">
+                        <div className="menu-item-group" onClick={handleLoginNavigate} data-label="Sign-In">
                             <GlassIcon type="user" initial="S" />
                             <span className="menu-label">Sign-In</span>
                         </div>
@@ -1027,12 +1027,12 @@ const DefaultPage = () => {
                 </div>
                 <div className="header-menu header-menu-right">
                     {isFeedbackAdmin && (
-                        <div className="menu-item-group" onClick={openAdmin} title="Admin">
+                        <div className="menu-item-group" onClick={openAdmin} data-label="Admin">
                             <GlassIcon type="user" initial="A" />
                             <span className="menu-label">Admin</span>
                         </div>
                     )}
-                    <div className="menu-item-group" onClick={openFeedback} title="Feedback">
+                    <div className="menu-item-group" onClick={openFeedback} data-label="Feedback">
                         <GlassIcon type="feedback" />
                         <span className="menu-label">Feedback</span>
                     </div>
