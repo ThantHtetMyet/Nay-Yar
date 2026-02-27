@@ -17,6 +17,7 @@ app.get('/api/test', (req, res) => res.json({ status: 'ok', time: new Date().toI
 const USER_DB_PATH = path.join(__dirname, 'Database', 'user_data.xml');
 const LISTING_DB_PATH = path.join(__dirname, 'Database', 'property_data.xml');
 const FEEDBACK_DB_PATH = path.join(__dirname, 'Database', 'feedback_data.xml');
+const URL_HIT_DB_PATH = path.join(__dirname, 'Database', 'url_hit_count.xml');
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const readUsersXML = async () => {
@@ -91,6 +92,30 @@ const writeFeedbackXML = (dataObj) => {
     const builder = new xml2js.Builder();
     const xml = builder.buildObject(dataObj);
     fs.writeFileSync(FEEDBACK_DB_PATH, xml);
+};
+
+const readUrlHitsXML = async () => {
+    try {
+        if (!fs.existsSync(URL_HIT_DB_PATH)) return { UrlHitCounts: { UrlHit: [] } };
+        const xmlData = fs.readFileSync(URL_HIT_DB_PATH, 'utf-8');
+        if (!xmlData.trim()) return { UrlHitCounts: { UrlHit: [] } };
+        const parser = new xml2js.Parser({ explicitArray: false });
+        const result = await parser.parseStringPromise(xmlData);
+        if (!result || !result.UrlHitCounts) return { UrlHitCounts: { UrlHit: [] } };
+        if (result.UrlHitCounts.UrlHit && !Array.isArray(result.UrlHitCounts.UrlHit))
+            result.UrlHitCounts.UrlHit = [result.UrlHitCounts.UrlHit];
+        if (!result.UrlHitCounts.UrlHit) result.UrlHitCounts.UrlHit = [];
+        return result;
+    } catch (error) {
+        console.error('Error reading url hit XML:', error);
+        return { UrlHitCounts: { UrlHit: [] } };
+    }
+};
+
+const writeUrlHitsXML = (dataObj) => {
+    const builder = new xml2js.Builder();
+    const xml = builder.buildObject(dataObj);
+    fs.writeFileSync(URL_HIT_DB_PATH, xml);
 };
 
 // Generic dropdown reader
@@ -172,7 +197,7 @@ app.post('/api/signup', async (req, res) => {
             ID: crypto.randomUUID(),
             UserID: userID, FullName: fullName, Email: normalizedEmail,
             MobileNo: mobileNo, LoginPassword: loginPassword,
-            Remark: 'User Registered via API',
+            Remark: ' ',
             LastLogin: now, IsActive: 'true', IsDeleted: 'false',
             CreatedDate: now, UpdatedDate: now
         };
@@ -278,6 +303,240 @@ app.post('/api/feedback', async (req, res) => {
         return res.status(201).json({ success: true, data: newFeedback });
     } catch (error) {
         console.error('Error creating feedback:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/feedback', async (req, res) => {
+    try {
+        const userID = String(req.query.userID || '').trim();
+        if (userID !== 'Thant') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const db = await readFeedbackXML();
+        const feedbacks = db.Feedbacks.Feedback || [];
+        const sorted = [...feedbacks].sort((a, b) => {
+            const aTime = new Date(a.CreatedDate || 0).getTime();
+            const bTime = new Date(b.CreatedDate || 0).getTime();
+            return bTime - aTime;
+        });
+        return res.status(200).json({ success: true, data: sorted });
+    } catch (error) {
+        console.error('Error fetching feedback:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/feedback/:id', async (req, res) => {
+    try {
+        const userID = String(req.query.userID || '').trim();
+        if (userID !== 'Thant') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const targetId = String(req.params.id).trim();
+        const db = await readFeedbackXML();
+        const feedbacks = db.Feedbacks.Feedback || [];
+        const found = feedbacks.find(f => String(f.FeedbackID || '').trim() === targetId);
+        if (!found) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+        return res.status(200).json({ success: true, data: found });
+    } catch (error) {
+        console.error('Error fetching feedback detail:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/link-hits', async (req, res) => {
+    try {
+        const key = String(req.body?.key || '').trim();
+        const url = String(req.body?.url || '').trim();
+        const allowed = ['default-page', 'signup-success', 'create-post'];
+        if (!allowed.includes(key)) {
+            return res.status(400).json({ error: 'Invalid key' });
+        }
+        const db = await readUrlHitsXML();
+        const hits = db.UrlHitCounts.UrlHit || [];
+        const now = new Date().toISOString();
+        const entry = url
+            ? hits.find(item => String(item.Url || '').trim() === url)
+            : hits.find(item => String(item.Key || '').trim() === key && !item.Url);
+        if (entry) {
+            const nextCount = Number(entry.Count || 0) + 1;
+            entry.Count = String(nextCount);
+            entry.UpdatedDate = now;
+        } else {
+            hits.push({ Key: key, Url: url, Count: '1', UpdatedDate: now });
+        }
+        db.UrlHitCounts.UrlHit = hits;
+        writeUrlHitsXML(db);
+        const updated = url
+            ? hits.find(item => String(item.Url || '').trim() === url)
+            : hits.find(item => String(item.Key || '').trim() === key && !item.Url);
+        return res.status(200).json({ success: true, data: { key, count: Number(updated?.Count || 0) } });
+    } catch (error) {
+        console.error('Error updating link hits:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/link-hits', async (req, res) => {
+    try {
+        const userID = String(req.query.userID || '').trim();
+        if (userID !== 'Thant') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const db = await readUrlHitsXML();
+        const hits = db.UrlHitCounts.UrlHit || [];
+        const getCount = (key) => {
+            return hits
+                .filter(item => String(item.Key || '').trim() === key)
+                .reduce((sum, item) => sum + Number(item.Count || 0), 0);
+        };
+        const data = [
+            { key: 'default-page', count: getCount('default-page') },
+            { key: 'signup-success', count: getCount('signup-success') },
+            { key: 'create-post', count: getCount('create-post') },
+        ];
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching link hits:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/users/change-password', async (req, res) => {
+    try {
+        const { userID, newPassword } = req.body;
+        if (!userID || !newPassword) {
+            return res.status(400).json({ error: 'UserID and new password are required.' });
+        }
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+        }
+
+        const db = await readUsersXML();
+        const users = db.Users.User;
+        const idx = users.findIndex(u => u.UserID.toLowerCase() === String(userID).toLowerCase());
+        if (idx === -1) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        users[idx].LoginPassword = newPassword;
+        users[idx].UpdatedDate = new Date().toISOString();
+        writeUsersXML(db);
+        return res.status(200).json({ success: true, message: 'Password updated successfully.' });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/users/:userID', async (req, res) => {
+    try {
+        const targetId = String(req.params.userID || '').trim();
+        if (!targetId) return res.status(400).json({ error: 'UserID is required.' });
+        const db = await readUsersXML();
+        const users = db.Users.User || [];
+        const user = users.find(u => String(u.UserID || '').toLowerCase() === targetId.toLowerCase());
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+        return res.status(200).json({
+            success: true,
+            data: {
+                UserID: user.UserID || '',
+                FullName: user.FullName || '',
+                Email: user.Email || '',
+                MobileNo: user.MobileNo || '',
+                CreatedDate: user.CreatedDate || '',
+                UpdatedDate: user.UpdatedDate || ''
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.put('/api/users/:userID', async (req, res) => {
+    try {
+        const currentId = String(req.params.userID || '').trim();
+        const { userID, fullName, email, mobileNo } = req.body;
+        if (!currentId) return res.status(400).json({ error: 'UserID is required.' });
+        if (!userID || !fullName) {
+            return res.status(400).json({ error: 'UserID and full name are required.' });
+        }
+
+        const db = await readUsersXML();
+        const users = db.Users.User;
+        const idx = users.findIndex(u => String(u.UserID || '').toLowerCase() === currentId.toLowerCase());
+        if (idx === -1) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const nextUserID = String(userID).trim();
+        const duplicateUser = users.find((u, i) =>
+            i !== idx && String(u.UserID || '').toLowerCase() === nextUserID.toLowerCase()
+        );
+        if (duplicateUser) {
+            return res.status(409).json({ error: `UserID "${nextUserID}" is already taken.` });
+        }
+
+        const normalizedEmail = String(email || '').trim();
+        users[idx].UserID = nextUserID;
+        users[idx].FullName = String(fullName || '').trim();
+        users[idx].Email = normalizedEmail;
+        if (mobileNo !== undefined) {
+            users[idx].MobileNo = String(mobileNo || '').trim();
+        }
+        users[idx].UpdatedDate = new Date().toISOString();
+        writeUsersXML(db);
+
+        if (currentId.toLowerCase() !== nextUserID.toLowerCase()) {
+            const listingsDb = await readListingsXML();
+            const listings = listingsDb.PropertyListings.PropertyListing || [];
+            let updated = false;
+            listings.forEach(l => {
+                if (String(l.CreatedBy || '') === currentId) {
+                    l.CreatedBy = nextUserID;
+                    updated = true;
+                }
+            });
+            if (updated) writeListingsXML(listingsDb);
+        }
+
+        return res.status(200).json({
+            success: true,
+            user: {
+                UserID: users[idx].UserID || '',
+                FullName: users[idx].FullName || '',
+                Email: users[idx].Email || '',
+                MobileNo: users[idx].MobileNo || '',
+                CreatedDate: users[idx].CreatedDate || '',
+                UpdatedDate: users[idx].UpdatedDate || ''
+            }
+        });
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/users', async (req, res) => {
+    try {
+        const userID = String(req.query.userID || '').trim();
+        if (userID !== 'Thant') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const db = await readUsersXML();
+        const users = db.Users.User || [];
+        const data = users.map((u) => ({
+            UserID: u.UserID || '',
+            MobileNo: u.MobileNo || '',
+            CreatedDate: u.CreatedDate || '',
+        }));
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching users:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

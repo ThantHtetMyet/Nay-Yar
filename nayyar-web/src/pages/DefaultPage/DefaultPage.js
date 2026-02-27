@@ -11,7 +11,7 @@ import EditPostForm from '../PropertyPost/EditPostForm';
 import UserPage from '../UserPage/UserPage';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
-import { getAllListings, submitFeedback } from '../../services/api';
+import { getAllListings, submitFeedback, getFeedbacks, getLinkHits, trackLinkHit, getUsers, changePasswordRaw } from '../../services/api';
 
 // ── Nominatim rate limiter (module-level, shared across all callers) ───────
 // Nominatim policy: max 1 request per second. Using a queue ensures that
@@ -126,6 +126,7 @@ const DefaultPage = () => {
         }
     });
     const isLoggedIn = !!user;
+    const isFeedbackAdmin = user?.UserID === 'Thant';
 
     const [isLocatingUser, setIsLocatingUser] = useState(false);
 
@@ -141,6 +142,22 @@ const DefaultPage = () => {
         name: '',
         phone: '',
     });
+    const [feedbackList, setFeedbackList] = useState([]);
+    const [feedbackListError, setFeedbackListError] = useState('');
+    const [isFeedbackListLoading, setIsFeedbackListLoading] = useState(false);
+    const [selectedFeedback, setSelectedFeedback] = useState(null);
+    const [adminTab, setAdminTab] = useState('hits');
+    const [linkHits, setLinkHits] = useState([]);
+    const [linkHitsError, setLinkHitsError] = useState('');
+    const [isLinkHitsLoading, setIsLinkHitsLoading] = useState(false);
+    const [userList, setUserList] = useState([]);
+    const [userListError, setUserListError] = useState('');
+    const [isUserListLoading, setIsUserListLoading] = useState(false);
+    const [changePasswordForm, setChangePasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [copyToast, setCopyToast] = useState({ isOpen: false, message: '' });
+    const copyToastTimerRef = useRef(null);
+    const defaultHitTrackedRef = useRef(false);
 
     // Map state
     const [countryGeo, setCountryGeo] = useState(null); // geocoded result for selected country
@@ -150,7 +167,7 @@ const DefaultPage = () => {
 
     // Success Alert state — focusId is set here so the map refresh and the
     // focus step don't interfere with each other.
-    const [appAlert, setAppAlert] = useState({ isOpen: false, type: 'success', title: '', message: '', focusId: null });
+    const [appAlert, setAppAlert] = useState({ isOpen: false, type: 'success', title: '', message: '', focusId: null, actionText: '', onAction: null });
 
     // Refs — Leaflet operates on the real DOM
     const mapDivRef = useRef(null);
@@ -169,6 +186,59 @@ const DefaultPage = () => {
     const filteredMrtStations = MRT_STATIONS.filter(s =>
         s.toLowerCase().includes(mrtQuery.toLowerCase())
     );
+
+    const showCopyToast = (message) => {
+        setCopyToast({ isOpen: true, message });
+        if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+        copyToastTimerRef.current = setTimeout(() => {
+            setCopyToast({ isOpen: false, message: '' });
+        }, 2000);
+    };
+
+    const copyTextToClipboard = async (text) => {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return success;
+    };
+
+    useEffect(() => () => {
+        if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+    }, []);
+
+    useEffect(() => {
+        if (defaultHitTrackedRef.current) return;
+        defaultHitTrackedRef.current = true;
+        trackLinkHit('default-page', window.location.href).catch(() => { });
+    }, []);
+
+    useEffect(() => {
+        const propertyFromSearch = new URLSearchParams(location.search).get('property');
+        const pathMatch = location.pathname.match(/^\/property(?:=|\/)(.+)$/);
+        const propertyFromPath = pathMatch ? decodeURIComponent(pathMatch[1] || '') : null;
+        const locationHashMatch = (location.hash || '').match(/#\/?property(?:=|\/)([^&]+)/);
+        const propertyFromLocationHash = locationHashMatch ? decodeURIComponent(locationHashMatch[1] || '') : null;
+        const windowHashMatch = window.location.hash.match(/#\/?property(?:=|\/)([^&]+)/);
+        const propertyFromWindowHash = windowHashMatch ? decodeURIComponent(windowHashMatch[1] || '') : null;
+        const plainHashMatch = window.location.hash.match(/^#property=([^&]+)/);
+        const propertyFromPlainHash = plainHashMatch ? decodeURIComponent(plainHashMatch[1] || '') : null;
+        const propertyId = propertyFromSearch || propertyFromPath || propertyFromLocationHash || propertyFromWindowHash || propertyFromPlainHash;
+        if (!propertyId) return;
+        setActivePropertyId(propertyId);
+        setModalView('detail');
+        setIsCreatePostOpen(true);
+        setFocusPropertyId(propertyId);
+    }, [location.pathname, location.search, location.hash]);
 
     // ── 1. Initialize Leaflet map ────────────────────────────────────────
     useEffect(() => {
@@ -417,6 +487,25 @@ const DefaultPage = () => {
             };
             card.appendChild(btn);
 
+            const shareBtn = document.createElement('button');
+            shareBtn.className = 'prop-popup-btn prop-popup-share';
+            shareBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.5 2.5 0 0 0 0-1.39l7.05-4.11A2.99 2.99 0 1 0 15 5a3 3 0 0 0 .09.7L8.04 9.81A2.99 2.99 0 1 0 6 15a2.99 2.99 0 0 0 2.04-.81l7.12 4.16a2.79 2.79 0 1 0 .84-2.27Z"/>
+                </svg>
+                <span>Share</span>
+            `;
+            shareBtn.onclick = async () => {
+                const propertyLink = `${window.location.origin}${window.location.pathname}${window.location.search}#/property/${listing.PropertyID}`;
+                try {
+                    const success = await copyTextToClipboard(propertyLink);
+                    showCopyToast(success ? 'Copied link' : 'Unable to copy');
+                } catch {
+                    showCopyToast('Unable to copy');
+                }
+            };
+            card.appendChild(shareBtn);
+
             marker.bindPopup(card, { maxWidth: 260, className: 'prop-popup' });
             marker.listingID = listing.PropertyID;
             marker.propertyType = listing.PropertyType;
@@ -461,11 +550,23 @@ const DefaultPage = () => {
         setIsCreatePostOpen(false);
         setActivePropertyId(null);
         setModalView('create');
+        setSelectedFeedback(null);
     };
 
     const openMyProfile = () => {
         setModalView('user');
         setIsCreatePostOpen(true);
+    };
+
+    const openChangePassword = () => {
+        setChangePasswordForm({ newPassword: '', confirmPassword: '' });
+        setModalView('change-password');
+        setIsCreatePostOpen(true);
+    };
+
+    const handleUserUpdate = (nextUser) => {
+        setUser(nextUser);
+        sessionStorage.setItem('user', JSON.stringify(nextUser));
     };
 
     const handleDeleteSuccess = () => {
@@ -490,6 +591,64 @@ const DefaultPage = () => {
         setActivePropertyId(null);
         setIsCreatePostOpen(true);
     };
+
+    const openAdmin = () => {
+        if (!isFeedbackAdmin) return;
+        setModalView('admin');
+        setActivePropertyId(null);
+        setSelectedFeedback(null);
+        setAdminTab('hits');
+        setIsCreatePostOpen(true);
+    };
+
+    useEffect(() => {
+        if (modalView !== 'admin' || !isFeedbackAdmin) return;
+        let isMounted = true;
+        setIsFeedbackListLoading(true);
+        setFeedbackListError('');
+        setIsLinkHitsLoading(true);
+        setLinkHitsError('');
+        setIsUserListLoading(true);
+        setUserListError('');
+        Promise.all([
+            getFeedbacks(user?.UserID || ''),
+            getLinkHits(user?.UserID || ''),
+            getUsers(user?.UserID || ''),
+        ])
+            .then(([feedbackRes, hitsRes, usersRes]) => {
+                if (!isMounted) return;
+                if (feedbackRes?.success) {
+                    setFeedbackList(feedbackRes.data || []);
+                } else {
+                    setFeedbackListError(feedbackRes?.error || 'Unable to load feedback.');
+                }
+                if (hitsRes?.success) {
+                    setLinkHits(hitsRes.data || []);
+                } else {
+                    setLinkHitsError(hitsRes?.error || 'Unable to load link hits.');
+                }
+                if (usersRes?.success) {
+                    setUserList(usersRes.data || []);
+                } else {
+                    setUserListError(usersRes?.error || 'Unable to load users.');
+                }
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setFeedbackListError('Unable to load feedback.');
+                setLinkHitsError('Unable to load link hits.');
+                setUserListError('Unable to load users.');
+            })
+            .finally(() => {
+                if (!isMounted) return;
+                setIsFeedbackListLoading(false);
+                setIsLinkHitsLoading(false);
+                setIsUserListLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [modalView, isFeedbackAdmin, user?.UserID]);
 
     // Reset MRT highlights and clear station marker
     const clearMrtSearch = () => {
@@ -570,6 +729,7 @@ const DefaultPage = () => {
 
     const handleCreateSuccess = (propertyId) => {
         closeModal();
+        trackLinkHit('create-post', window.location.href).catch(() => { });
         setMarkersVersion(v => v + 1); // refresh map markers
         setAppAlert({
             isOpen: true,
@@ -595,7 +755,13 @@ const DefaultPage = () => {
 
     const handleGetUserLocation = () => {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser.');
+            setAppAlert({
+                isOpen: true,
+                type: 'error',
+                title: 'Location Unavailable',
+                message: 'Geolocation is not supported by your browser.',
+                focusId: null,
+            });
             return;
         }
 
@@ -633,7 +799,18 @@ const DefaultPage = () => {
             },
             (err) => {
                 console.error('Geolocation error:', err);
-                alert('Unable to retrieve your location. Check browser permissions.');
+                setAppAlert({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Location Error',
+                    message: 'Unable to retrieve your location. Check browser permissions.',
+                    focusId: null,
+                    actionText: 'Allow Location',
+                    onAction: () => {
+                        setAppAlert(a => ({ ...a, isOpen: false, actionText: '', onAction: null }));
+                        handleGetUserLocation();
+                    },
+                });
                 setIsLocatingUser(false);
             },
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
@@ -643,6 +820,84 @@ const DefaultPage = () => {
     const handleLogout = () => {
         setModalView('logout');
         setIsCreatePostOpen(true);
+    };
+
+    const handleChangePasswordInput = (event) => {
+        const { name, value } = event.target;
+        setChangePasswordForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleChangePasswordSubmit = async (event) => {
+        event.preventDefault();
+        if (isChangingPassword) return;
+        const newPassword = String(changePasswordForm.newPassword || '');
+        const confirmPassword = String(changePasswordForm.confirmPassword || '');
+        if (!newPassword || !confirmPassword) {
+            setAppAlert({
+                isOpen: true,
+                type: 'error',
+                title: 'Missing Password',
+                message: 'Please fill in both password fields.',
+                focusId: null,
+            });
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setAppAlert({
+                isOpen: true,
+                type: 'error',
+                title: 'Password Mismatch',
+                message: 'New Password and Confirm Password do not match.',
+                focusId: null,
+            });
+            return;
+        }
+        if (newPassword.length < 6) {
+            setAppAlert({
+                isOpen: true,
+                type: 'error',
+                title: 'Weak Password',
+                message: 'Password must be at least 6 characters long.',
+                focusId: null,
+            });
+            return;
+        }
+        setIsChangingPassword(true);
+        try {
+            const { res, data } = await changePasswordRaw({
+                userID: user?.UserID || '',
+                newPassword,
+            });
+            if (!res.ok) {
+                setAppAlert({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Reset Failed',
+                    message: data?.error || 'Unable to update password.',
+                    focusId: null,
+                });
+                return;
+            }
+            setChangePasswordForm({ newPassword: '', confirmPassword: '' });
+            setModalView('user');
+            setAppAlert({
+                isOpen: true,
+                type: 'success',
+                title: 'Password Updated',
+                message: 'Your password has been updated successfully.',
+                focusId: null,
+            });
+        } catch {
+            setAppAlert({
+                isOpen: true,
+                type: 'error',
+                title: 'Connection Error',
+                message: 'Unable to update password right now.',
+                focusId: null,
+            });
+        } finally {
+            setIsChangingPassword(false);
+        }
     };
 
     const confirmLogout = () => {
@@ -702,13 +957,29 @@ const DefaultPage = () => {
         }
     };
 
+    const formatFeedbackDate = (value) => {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '—';
+        return date.toLocaleString();
+    };
+
+    const linkHitLabels = {
+        'default-page': 'Default Page',
+        'signup-success': 'Signup Success',
+        'create-post': 'Create Post',
+    };
+    const maxLinkHit = linkHits.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
+
     const modalTitle = modalView === 'create' ? 'Create Property Listing'
         : modalView === 'edit' ? 'Edit Listing'
             : modalView === 'logout' ? 'Confirm Logout'
                 : modalView === 'search' ? 'Search Area'
                     : modalView === 'feedback' ? 'Feedback'
-                        : modalView === 'user' ? 'My Account'
-                            : 'Listing Details';
+                        : modalView === 'admin' ? 'Admin'
+                            : modalView === 'user' ? 'My Account'
+                                : modalView === 'change-password' ? 'Change Password'
+                                    : 'Listing Details';
 
     // ── Render ─────────────────────────────────────────────────────────────
     return (
@@ -716,34 +987,40 @@ const DefaultPage = () => {
 
             <div className="dashboard-header">
                 <div className="header-menu header-menu-left">
-                    <div className="menu-item-group" onClick={openCreateWithAuthCheck}>
+                    <div className="menu-item-group" onClick={openCreateWithAuthCheck} title="Create Post">
                         <GlassIcon type="create" />
                         <span className="menu-label">Create Post</span>
                     </div>
-                    <div className="menu-item-group" onClick={openSearch}>
+                    <div className="menu-item-group" onClick={openSearch} title="Search">
                         <GlassIcon type="search" />
                         <span className="menu-label">Search</span>
                     </div>
                     {isLoggedIn ? (
                         <>
-                            <div className="menu-item-group" onClick={openMyProfile}>
+                            <div className="menu-item-group" onClick={openMyProfile} title="Account">
                                 <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
                                 <span className="menu-label">Account</span>
                             </div>
-                            <div className="menu-item-group" onClick={handleLogout}>
+                            <div className="menu-item-group" onClick={handleLogout} title="Logout">
                                 <GlassIcon type="logout" />
                                 <span className="menu-label">Logout</span>
                             </div>
                         </>
                     ) : (
-                        <div className="menu-item-group" onClick={handleLoginNavigate}>
+                        <div className="menu-item-group" onClick={handleLoginNavigate} title="Sign-In">
                             <GlassIcon type="user" initial="S" />
                             <span className="menu-label">Sign-In</span>
                         </div>
                     )}
                 </div>
                 <div className="header-menu header-menu-right">
-                    <div className="menu-item-group" onClick={openFeedback}>
+                    {isFeedbackAdmin && (
+                        <div className="menu-item-group" onClick={openAdmin} title="Admin">
+                            <GlassIcon type="user" initial="A" />
+                            <span className="menu-label">Admin</span>
+                        </div>
+                    )}
+                    <div className="menu-item-group" onClick={openFeedback} title="Feedback">
                         <GlassIcon type="feedback" />
                         <span className="menu-label">Feedback</span>
                     </div>
@@ -754,6 +1031,11 @@ const DefaultPage = () => {
             {/* ── Leaflet Map ── */}
             <div className="map-container">
                 <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
+                {copyToast.isOpen && (
+                    <div className="copy-toast">
+                        <span>{copyToast.message}</span>
+                    </div>
+                )}
 
                 <div className="map-controls-group">
                     {isLocatingUser && (
@@ -807,7 +1089,212 @@ const DefaultPage = () => {
                     <UserPage
                         user={user}
                         onRefreshMap={() => setMarkersVersion(v => v + 1)}
+                        onUserUpdate={handleUserUpdate}
+                        onChangePassword={openChangePassword}
                     />
+                )}
+                {modalView === 'change-password' && (
+                    <div className="change-password-view">
+                        <form className="change-password-form" onSubmit={handleChangePasswordSubmit}>
+                            <div className="change-password-row">
+                                <label>New Password</label>
+                                <input
+                                    type="password"
+                                    name="newPassword"
+                                    value={changePasswordForm.newPassword}
+                                    onChange={handleChangePasswordInput}
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                            <div className="change-password-row">
+                                <label>Confirm Password</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={changePasswordForm.confirmPassword}
+                                    onChange={handleChangePasswordInput}
+                                    placeholder="Confirm new password"
+                                />
+                            </div>
+                            <div className="change-password-actions">
+                                <button type="submit" className="btn-submit" disabled={isChangingPassword}>
+                                    {isChangingPassword ? 'Updating...' : 'Update Password'}
+                                </button>
+                                <button type="button" className="btn-cancel" onClick={() => setModalView('user')} disabled={isChangingPassword}>
+                                    Back
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+                {modalView === 'admin' && isFeedbackAdmin && (
+                    <div className="admin-panel">
+                        <div className="admin-tabs">
+                            <button
+                                type="button"
+                                className={`admin-tab ${adminTab === 'hits' ? 'active' : ''}`}
+                                onClick={() => setAdminTab('hits')}
+                            >
+                                Link Hits
+                            </button>
+                            <button
+                                type="button"
+                                className={`admin-tab ${adminTab === 'feedback' ? 'active' : ''}`}
+                                onClick={() => setAdminTab('feedback')}
+                            >
+                                Feedback
+                            </button>
+                            <button
+                                type="button"
+                                className={`admin-tab ${adminTab === 'users' ? 'active' : ''}`}
+                                onClick={() => setAdminTab('users')}
+                            >
+                                Users
+                            </button>
+                        </div>
+
+                        {adminTab === 'hits' && (
+                            <div className="admin-hits">
+                                {isLinkHitsLoading && (
+                                    <div className="feedback-list-state">Loading link hits...</div>
+                                )}
+                                {!isLinkHitsLoading && linkHitsError && (
+                                    <div className="feedback-list-state error">{linkHitsError}</div>
+                                )}
+                                {!isLinkHitsLoading && !linkHitsError && linkHits.length === 0 && (
+                                    <div className="feedback-list-state">No link hits yet.</div>
+                                )}
+                                {!isLinkHitsLoading && !linkHitsError && linkHits.length > 0 && (
+                                    <div className="link-hit-list">
+                                        {linkHits.map((item) => {
+                                            const width = maxLinkHit ? Math.round((Number(item.count || 0) / maxLinkHit) * 100) : 0;
+                                            return (
+                                                <div key={item.key} className="link-hit-row">
+                                                    <div className="link-hit-info">
+                                                        <span className="link-hit-id">{linkHitLabels[item.key] || item.key}</span>
+                                                    </div>
+                                                    <div className="link-hit-bar">
+                                                        <div className="link-hit-bar-fill" style={{ width: `${width}%` }} />
+                                                        <span className="link-hit-count">{item.count || 0}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {adminTab === 'feedback' && (
+                            <div className="feedback-list-view">
+                                {isFeedbackListLoading && (
+                                    <div className="feedback-list-state">Loading feedback...</div>
+                                )}
+                                {!isFeedbackListLoading && feedbackListError && (
+                                    <div className="feedback-list-state error">{feedbackListError}</div>
+                                )}
+                                {!isFeedbackListLoading && !feedbackListError && feedbackList.length === 0 && (
+                                    <div className="feedback-list-state">No feedback yet.</div>
+                                )}
+                                {!isFeedbackListLoading && !feedbackListError && feedbackList.length > 0 && (
+                                    <div className="feedback-list">
+                                        {feedbackList.map((item) => (
+                                            <button
+                                                key={item.FeedbackID}
+                                                type="button"
+                                                className="feedback-list-item"
+                                                onClick={() => {
+                                                    setSelectedFeedback(item);
+                                                }}
+                                            >
+                                                <div className="feedback-list-row">
+                                                    <span className="feedback-list-name">
+                                                        {item.Name || item.FullName || item.UserID || 'Anonymous'}
+                                                    </span>
+                                                    <span className="feedback-list-rating">Rating {item.Rating || '—'}</span>
+                                                </div>
+                                                <div className="feedback-list-message">
+                                                    {item.Message && item.Message.length > 120 ? `${item.Message.slice(0, 120)}…` : (item.Message || 'No message')}
+                                                </div>
+                                                <div className="feedback-list-meta">
+                                                    <span>{formatFeedbackDate(item.CreatedDate)}</span>
+                                                    <span>{item.Email || ''}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {selectedFeedback && (
+                                    <div className="feedback-detail-view">
+                                        <div className="feedback-detail-card">
+                                            <div className="feedback-detail-row">
+                                                <span>Name</span>
+                                                <strong>{selectedFeedback.Name || selectedFeedback.FullName || selectedFeedback.UserID || 'Anonymous'}</strong>
+                                            </div>
+                                            <div className="feedback-detail-row">
+                                                <span>Rating</span>
+                                                <strong>{selectedFeedback.Rating || '—'}</strong>
+                                            </div>
+                                            <div className="feedback-detail-row">
+                                                <span>Date</span>
+                                                <strong>{formatFeedbackDate(selectedFeedback.CreatedDate)}</strong>
+                                            </div>
+                                            <div className="feedback-detail-row">
+                                                <span>Email</span>
+                                                <strong>{selectedFeedback.Email || '—'}</strong>
+                                            </div>
+                                            <div className="feedback-detail-row">
+                                                <span>Phone</span>
+                                                <strong>{selectedFeedback.Phone || '—'}</strong>
+                                            </div>
+                                            <div className="feedback-detail-message">
+                                                {selectedFeedback.Message || 'No message'}
+                                            </div>
+                                        </div>
+                                        <div className="feedback-detail-actions">
+                                            <button
+                                                type="button"
+                                                className="btn-cancel"
+                                                onClick={() => setSelectedFeedback(null)}
+                                            >
+                                                Hide detail
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {adminTab === 'users' && (
+                            <div className="admin-users">
+                                {isUserListLoading && (
+                                    <div className="feedback-list-state">Loading users...</div>
+                                )}
+                                {!isUserListLoading && userListError && (
+                                    <div className="feedback-list-state error">{userListError}</div>
+                                )}
+                                {!isUserListLoading && !userListError && userList.length === 0 && (
+                                    <div className="feedback-list-state">No users found.</div>
+                                )}
+                                {!isUserListLoading && !userListError && userList.length > 0 && (
+                                    <div className="user-list-table">
+                                        <div className="user-list-row header">
+                                            <span>UserID</span>
+                                            <span>Phone</span>
+                                            <span>Created</span>
+                                        </div>
+                                        {userList.map((u) => (
+                                            <div key={`${u.UserID}-${u.MobileNo}`} className="user-list-row">
+                                                <span>{u.UserID || '—'}</span>
+                                                <span>{u.MobileNo || '—'}</span>
+                                                <span>{formatFeedbackDate(u.CreatedDate)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 )}
                 {modalView === 'feedback' && (
                     <form className="feedback-form" onSubmit={handleFeedbackSubmit}>
@@ -946,9 +1433,11 @@ const DefaultPage = () => {
                 type={appAlert.type}
                 title={appAlert.title}
                 message={appAlert.message}
+                actionText={appAlert.actionText}
+                onAction={appAlert.onAction}
                 onClose={() => {
                     const fid = appAlert.focusId;
-                    setAppAlert(a => ({ ...a, isOpen: false, focusId: null }));
+                    setAppAlert(a => ({ ...a, isOpen: false, focusId: null, actionText: '', onAction: null }));
                     if (fid) setFocusPropertyId(fid);
                 }}
             />
@@ -959,7 +1448,7 @@ const DefaultPage = () => {
                     type="info"
                     confirmText="Sign In"
                     cancelText="Sign Up"
-                    neutralText="Stay Here"
+                    neutralText="Map"
                     onConfirm={handleLoginNavigate}
                     onCancel={handleSignupNavigate}
                     onNeutral={() => setIsAuthPromptOpen(false)}

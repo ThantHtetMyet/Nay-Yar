@@ -9,6 +9,7 @@ function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<DefaultPage />} />
+        <Route path="/property/:id" element={<DefaultPage />} />
         <Route path="/signin" element={<AuthPage initialMode="login" />} />
         <Route path="/signup" element={<AuthPage initialMode="signup" />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

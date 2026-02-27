@@ -1,1 +1,31 @@
-
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PropertyListings>
+  <PropertyListing>
+    <PropertyID>6384f09b-48a0-4c2b-a7dc-317eac1f0b8d</PropertyID>
+    <PropertyType>PT001</PropertyType>
+    <ListingType>LT001</ListingType>
+    <PropertySubType>[{"SubTypeID":"RST002","Label":"Common Room","Price":"800","PubIncluded":true,"RentalBasis":"Shared","TotalBeds":2,"BedsForRent":1,"GenderPref":"Female","RegistrationProvided":true,"Remark":""}]</PropertySubType>
+    <Price>0</Price>
+    <RentTerm>Per Month</RentTerm>
+    <Currency>SGD</Currency>
+    <Country>Singapore</Country>
+    <City>Singapore</City>
+    <Address>Blk 161</Address>
+    <PostalCode>530161</PostalCode>
+    <Bedrooms/>
+    <Bathrooms/>
+    <AreaSize/>
+    <AvailableFrom>2026-03-02</AvailableFrom>
+    <ContactPhone>83816401</ContactPhone>
+    <ContactEmail/>
+    <GenderPreference>Any</GenderPreference>
+    <Description/>
+    <Remark/>
+    <CreatedBy>Thant</CreatedBy>
+    <CreatedDate>2026-02-27T03:26:08.065Z</CreatedDate>
+    <UpdatedDate/>
+    <IsActive>true</IsActive>
+    <IsDeleted>false</IsDeleted>
+    <IsClosed>false</IsClosed>
+  </PropertyListing>
+</PropertyListings>

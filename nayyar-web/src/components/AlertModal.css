@@ -109,6 +109,8 @@
     border-top: 1px solid rgba(255, 255, 255, 0.55);
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .alert-btn {
@@ -144,6 +146,11 @@
 
 .alert-btn:active {
     transform: scale(0.97);
+}
+
+.alert-btn-action {
+    background: rgba(78, 128, 240, 0.18);
+    color: #1e3a8a;
 }
 
 /* Theme Colors - Unified System Branding */

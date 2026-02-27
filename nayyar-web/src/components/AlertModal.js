@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './AlertModal.css';
 
-const AlertModal = ({ isOpen, type = 'info', title, message, onClose }) => {
+const AlertModal = ({ isOpen, type = 'info', title, message, onClose, actionText, onAction }) => {
     if (!isOpen) return null;
 
     // Determine icon based on type
@@ -25,6 +25,11 @@ const AlertModal = ({ isOpen, type = 'info', title, message, onClose }) => {
                     <p>{message}</p>
                 </div>
                 <div className="alert-modal-footer">
+                    {actionText ? (
+                        <button className="alert-btn alert-btn-action" onClick={onAction}>
+                            {actionText}
+                        </button>
+                    ) : null}
                     <button className={`alert-btn alert-btn-${type}`} onClick={onClose}>
                         Confirm
                     </button>

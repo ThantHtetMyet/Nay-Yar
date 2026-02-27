@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Building3D from '../../components/Building3D';
 import AlertModal from '../../components/AlertModal';
 import './AuthPage.css';
-import { loginRaw, signupRaw } from '../../services/api';
+import { loginRaw, signupRaw, trackLinkHit } from '../../services/api';
 
 const AuthPage = ({ initialMode = 'login' }) => {
     const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
@@ -102,6 +102,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                 return;
             }
 
+            trackLinkHit('signup-success', window.location.href).catch(() => { });
             showModal('success', 'Account Created', 'Your account has been successfully created! You can now log in.', () => {
                 setIsSignUp(false); // Switch to login view
             });

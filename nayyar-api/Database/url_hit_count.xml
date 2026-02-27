@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<UrlHitCounts>
+  <UrlHit>
+    <Key>default-page</Key>
+    <Count>4</Count>
+    <UpdatedDate>2026-02-27T05:32:08.309Z</UpdatedDate>
+  </UrlHit>
+  <UrlHit>
+    <Key>default-page</Key>
+    <Url>http://localhost:3000/#/</Url>
+    <Count>8</Count>
+    <UpdatedDate>2026-02-27T07:06:45.635Z</UpdatedDate>
+  </UrlHit>
+  <UrlHit>
+    <Key>default-page</Key>
+    <Url>http://localhost:3000/#/property/6384f09b-48a0-4c2b-a7dc-317eac1f0b8d</Url>
+    <Count>1</Count>
+    <UpdatedDate>2026-02-27T05:33:12.872Z</UpdatedDate>
+  </UrlHit>
+  <UrlHit>
+    <Key>signup-success</Key>
+    <Url>http://localhost:3000/#/signup</Url>
+    <Count>1</Count>
+    <UpdatedDate>2026-02-27T07:06:36.128Z</UpdatedDate>
+  </UrlHit>
+</UrlHitCounts>
