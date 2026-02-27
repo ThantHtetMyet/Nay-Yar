@@ -227,23 +227,52 @@ const DefaultPage = () => {
         const updateAppHeight = () => {
             const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             document.documentElement.style.setProperty('--app-height', `${height}px`);
+            if (window.scrollY !== 0) {
+                window.scrollTo(0, 0);
+            }
             if (leafletMapRef.current) {
                 leafletMapRef.current.invalidateSize();
             }
         };
+        const root = document.documentElement;
+        const prevRootHeight = root.style.height;
+        const prevBodyHeight = document.body.style.height;
+        const prevBodyOverflow = document.body.style.overflow;
+        root.style.height = 'var(--app-height, 100dvh)';
+        document.body.style.height = 'var(--app-height, 100dvh)';
+        document.body.style.overflow = 'hidden';
+
         updateAppHeight();
+        const timeouts = [
+            setTimeout(updateAppHeight, 50),
+            setTimeout(updateAppHeight, 250),
+            setTimeout(updateAppHeight, 600),
+            setTimeout(updateAppHeight, 1000),
+        ];
         const viewport = window.visualViewport;
         window.addEventListener('resize', updateAppHeight);
+        window.addEventListener('orientationchange', updateAppHeight);
+        window.addEventListener('pageshow', updateAppHeight);
+        window.addEventListener('focus', updateAppHeight);
+        document.addEventListener('visibilitychange', updateAppHeight);
         if (viewport) {
             viewport.addEventListener('resize', updateAppHeight);
             viewport.addEventListener('scroll', updateAppHeight);
         }
         return () => {
             window.removeEventListener('resize', updateAppHeight);
+            window.removeEventListener('orientationchange', updateAppHeight);
+            window.removeEventListener('pageshow', updateAppHeight);
+            window.removeEventListener('focus', updateAppHeight);
+            document.removeEventListener('visibilitychange', updateAppHeight);
             if (viewport) {
                 viewport.removeEventListener('resize', updateAppHeight);
                 viewport.removeEventListener('scroll', updateAppHeight);
             }
+            timeouts.forEach(clearTimeout);
+            root.style.height = prevRootHeight;
+            document.body.style.height = prevBodyHeight;
+            document.body.style.overflow = prevBodyOverflow;
         };
     }, []);
 
