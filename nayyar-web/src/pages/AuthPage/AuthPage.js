@@ -67,7 +67,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
             sessionStorage.setItem('user', JSON.stringify(data.user));
 
             // Navigate instantly upon successful login
-            window.location.href = '/';
+            const basePath = process.env.PUBLIC_URL || '';
+            window.location.href = `${window.location.origin}${basePath}/`;
 
         } catch (err) {
             setLoading(false);
