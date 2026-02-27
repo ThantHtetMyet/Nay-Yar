@@ -224,6 +224,30 @@ const DefaultPage = () => {
     }, []);
 
     useEffect(() => {
+        const updateAppHeight = () => {
+            const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            document.documentElement.style.setProperty('--app-height', `${height}px`);
+            if (leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize();
+            }
+        };
+        updateAppHeight();
+        const viewport = window.visualViewport;
+        window.addEventListener('resize', updateAppHeight);
+        if (viewport) {
+            viewport.addEventListener('resize', updateAppHeight);
+            viewport.addEventListener('scroll', updateAppHeight);
+        }
+        return () => {
+            window.removeEventListener('resize', updateAppHeight);
+            if (viewport) {
+                viewport.removeEventListener('resize', updateAppHeight);
+                viewport.removeEventListener('scroll', updateAppHeight);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         const propertyFromSearch = new URLSearchParams(location.search).get('property');
         const pathMatch = location.pathname.match(/^\/property(?:=|\/)(.+)$/);
         const propertyFromPath = pathMatch ? decodeURIComponent(pathMatch[1] || '') : null;
