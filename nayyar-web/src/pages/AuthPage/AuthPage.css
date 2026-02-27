@@ -41,16 +41,69 @@
     z-index: 10;
 }
 
+.auth-close-button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.auth-close-button:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.auth-close-button::after {
+    content: attr(data-label);
+    position: absolute;
+    top: 44px;
+    right: 0;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity var(--transition), transform var(--transition);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
+}
+
+.auth-close-button:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* --- HEADER SECTION (BLUE WITH ICON) --- */
 .auth-header-section {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    padding: 20px 20px 60px; /* Reduced top/bottom padding to maximize center space */
+    padding: 14px 20px 46px;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 380px; /* Tall enough for full rotation */
+    min-height: 320px;
     overflow: visible; /* Ensure 3D doesn't clip */
 }
 
@@ -77,7 +130,7 @@
 /* Wave Transition */
 .auth-wave-container {
     position: absolute;
-    bottom: -1px;
+    bottom: -17px;
     left: 0;
     width: 100%;
     line-height: 0;
@@ -105,14 +158,15 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--clr-text);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+    margin-top: -6px;
     text-align: center;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .auth-form-row {
@@ -141,8 +195,8 @@
 
 .auth-input:focus {
     background: rgba(255, 255, 255, 0.9);
-    border-color: #4e80f0;
-    box-shadow: 0 0 0 4px rgba(78, 128, 240, 0.1); /* Restored blue focus glow */
+    border-color: #0f172a;
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.12);
 }
 
 .auth-label {
@@ -162,7 +216,7 @@
     left: 12px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #4e80f0;
+    color: #0f172a;
     background: #ffffff;
     padding: 0 6px;
     border-radius: 4px;
@@ -210,6 +264,13 @@
     transform: translateY(-7px);
 }
 
+.auth-submit {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 16px;
+    margin-top: 10px;
+}
+
 .auth-button-outline {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(24px) saturate(160%);
@@ -252,12 +313,23 @@
     border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.auth-footer-center {
+    justify-content: center;
+}
+
 .auth-link {
     font-size: 0.875rem;
     color: var(--clr-muted);
     text-decoration: none;
     transition: var(--transition);
     cursor: pointer;
+}
+
+.auth-link-button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font: inherit;
 }
 
 .auth-link:hover {
@@ -277,13 +349,42 @@
 /* Responsive */
 @media (max-width: 480px) {
     .auth-card-container {
-        border-radius: 0;
+        border-radius: 22px;
         width: 100%;
-        max-width: 100%;
-        min-height: 100vh;
+        max-width: 420px;
+        min-height: unset;
+        margin: 16px auto;
     }
     
     .auth-root {
-        padding: 0;
+        padding: 16px;
+        align-items: flex-start;
+    }
+
+    .auth-header-section {
+        min-height: 260px;
+        padding: 16px 16px 44px;
+    }
+
+    .auth-brand-title {
+        font-size: 1.5rem;
+    }
+
+    .auth-wave-svg {
+        height: 60px;
+    }
+
+    .auth-form-section {
+        padding: 12px 20px 28px;
+    }
+
+    .auth-form-title {
+        font-size: 1.25rem;
+        margin-bottom: 18px;
+    }
+
+    .auth-button {
+        font-size: 12px;
+        padding: 12px 26px;
     }
 }

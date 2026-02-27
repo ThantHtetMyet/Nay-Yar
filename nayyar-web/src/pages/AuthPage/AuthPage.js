@@ -116,6 +116,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
     return (
         <div className="auth-root">
             <div className="auth-card-container auth-single-column">
+                <button type="button" className="auth-close-button" data-label="Back to Map" aria-label="Back to Map" onClick={() => navigate('/')}>×</button>
                 <div className="auth-header-section">
                     <div className="auth-hero">
                         <Building3D />
@@ -146,7 +147,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                                 </div>
 
                                 <div className="auth-form-group">
-                                    <input className="auth-input" type="email" name="email" placeholder=" " value={signupData.email} onChange={handleSignupChange} required />
+                                    <input className="auth-input" type="email" name="email" placeholder=" " value={signupData.email} onChange={handleSignupChange} />
                                     <label className="auth-label">Email</label>
                                 </div>
 
@@ -165,11 +166,13 @@ const AuthPage = ({ initialMode = 'login' }) => {
                                 </div>
 
                                 <div className="auth-action-row">
-                                    <button className="auth-button" type="submit" disabled={loading}>
-                                        {loading ? 'Creating account...' : 'Sign Up'}
+                                    <button className="auth-button auth-submit" type="submit" disabled={loading}>
+                                        {loading ? 'Creating account...' : 'Create Account'}
                                     </button>
-                                    <button className="auth-button auth-button-outline auth-signin-btn" type="button" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>
-                                        Sign In
+                                </div>
+                                <div className="auth-footer-links auth-footer-center">
+                                    <button className="auth-link auth-link-button" type="button" onClick={() => { setIsSignUp(false); navigate('/signin'); }}>
+                                        Back to Sign In
                                     </button>
                                 </div>
                             </form>

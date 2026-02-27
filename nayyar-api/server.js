@@ -148,26 +148,29 @@ const buildListingObject = (payload, propertyID, now, isRoomRent) => ({
 app.post('/api/signup', async (req, res) => {
     try {
         const { userID, fullName, email, mobileNo, loginPassword } = req.body;
-        if (!userID || !email || !loginPassword)
+        if (!userID || !loginPassword)
             return res.status(400).json({ error: 'Missing required fields' });
 
         const db = await readUsersXML();
         const users = db.Users.User;
 
         const isDuplicateUserID = users.some(u => u.UserID.toLowerCase() === userID.toLowerCase());
-        const isDuplicateEmail = users.some(u => u.Email.toLowerCase() === email.toLowerCase());
+        const normalizedEmail = String(email || '').trim();
+        const isDuplicateEmail = normalizedEmail
+            ? users.some(u => u.Email.toLowerCase() === normalizedEmail.toLowerCase())
+            : false;
         if (isDuplicateUserID || isDuplicateEmail)
             return res.status(409).json({
                 error: 'Conflict',
                 message: isDuplicateUserID
                     ? `UserID "${userID}" is already taken.`
-                    : `Email "${email}" is already registered.`
+                    : `Email "${normalizedEmail}" is already registered.`
             });
 
         const now = new Date().toISOString();
         const newUser = {
             ID: crypto.randomUUID(),
-            UserID: userID, FullName: fullName, Email: email,
+            UserID: userID, FullName: fullName, Email: normalizedEmail,
             MobileNo: mobileNo, LoginPassword: loginPassword,
             Remark: 'User Registered via API',
             LastLogin: now, IsActive: 'true', IsDeleted: 'false',

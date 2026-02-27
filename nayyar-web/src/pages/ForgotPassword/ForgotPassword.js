@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AlertModal from '../../components/AlertModal';
 import { resetPasswordRaw } from '../../services/api';
 import './ForgotPassword.css';
@@ -14,6 +14,10 @@ export default function ForgotPassword() {
         confirmPassword: '',
     });
     const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null });
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const closeModal = () => {
         if (modalConfig.onConfirm) modalConfig.onConfirm();
@@ -71,15 +75,21 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
+        <div className="fp-container">
+            <div className="fp-card">
+                <button type="button" className="fp-close-button" data-label="Back to Map" aria-label="Back to Map" onClick={() => navigate('/')}>×</button>
+                <div className="fp-wave">
+                    <svg viewBox="0 0 500 150" preserveAspectRatio="none" className="fp-wave-svg">
+                        <path d="M-0.00,49.85 C150.00,149.60 349.20,-49.85 500.00,49.85 L500.00,149.60 L-0.00,149.60 Z" className="fp-wave-path"></path>
+                    </svg>
+                </div>
+                <div className="fp-header">
                     <h2>Reset password</h2>
                     <p>UserID need to match with phone number that used to create that account.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
-                    <div className="form-group floating-label">
+                <form onSubmit={handleSubmit} className="fp-form" autoComplete="off">
+                    <div className="fp-form-group fp-floating-label">
                         <input
                             type="text"
                             id="fp-userid"
@@ -91,7 +101,7 @@ export default function ForgotPassword() {
                         />
                         <label htmlFor="fp-userid">UserID</label>
                     </div>
-                    <div className="form-group floating-label">
+                    <div className="fp-form-group fp-floating-label">
                         <input
                             type="tel"
                             id="fp-phone"
@@ -103,7 +113,7 @@ export default function ForgotPassword() {
                         />
                         <label htmlFor="fp-phone">Phone Number</label>
                     </div>
-                    <div className="form-group floating-label">
+                    <div className="fp-form-group fp-floating-label">
                         <input
                             type="password"
                             id="fp-password"
@@ -115,7 +125,7 @@ export default function ForgotPassword() {
                         />
                         <label htmlFor="fp-password">New Password</label>
                     </div>
-                    <div className="form-group floating-label">
+                    <div className="fp-form-group fp-floating-label">
                         <input
                             type="password"
                             id="fp-confirm"
@@ -130,17 +140,17 @@ export default function ForgotPassword() {
 
                     <button
                         type="submit"
-                        className="btn-submit"
+                        className="fp-submit"
                         disabled={loading}
                     >
                         {loading ? 'Resetting...' : 'Reset Password'}
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    <Link to="/signin" className="back-link">
-                        ← Back to Sign In
-                    </Link>
+                <div className="fp-footer">
+                    <button className="fp-back-link" type="button" onClick={() => navigate('/signin')}>
+                        Back to Sign In
+                    </button>
                 </div>
             </div>
             <AlertModal
