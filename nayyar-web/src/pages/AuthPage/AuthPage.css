@@ -149,7 +149,7 @@
 
 /* --- FORM SECTION --- */
 .auth-form-section {
-    padding: 15px 32px 40px; /* Reduced top padding to bring title closer to wave */
+    padding: 26px 32px 40px;
     position: relative;
     background: #ffffff;
 }
@@ -159,7 +159,7 @@
     font-weight: 700;
     color: var(--clr-text);
     margin-bottom: 20px;
-    margin-top: -6px;
+    margin-top: 6px;
     text-align: center;
 }
 
@@ -375,12 +375,13 @@
     }
 
     .auth-form-section {
-        padding: 12px 20px 28px;
+        padding: 20px 20px 28px;
     }
 
     .auth-form-title {
         font-size: 1.25rem;
         margin-bottom: 18px;
+        margin-top: 4px;
     }
 
     .auth-button {
