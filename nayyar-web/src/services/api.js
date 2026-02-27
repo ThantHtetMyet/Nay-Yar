@@ -13,8 +13,8 @@ const isLocalhost = hostName === 'localhost' || hostName === '127.0.0.1';
 //const DEFAULT_REMOTE_URL = 'https://nay-yar.onrender.com/api';
 const DEFAULT_REMOTE_URL = 'http://localhost:5010/api';
 //const BASE_URL = process.env.REACT_APP_API_BASE || (isLocalhost ? 'http://localhost:5010/api' : DEFAULT_REMOTE_URL);
-const BASE_URL =  'http://localhost:5010/api' ;
-//const BASE_URL = 'https://nay-yar.onrender.com/api';
+//const BASE_URL =  'http://localhost:5010/api' ;
+const BASE_URL = 'https://nay-yar.onrender.com/api';
 
 // ── Utility ────────────────────────────────────────────────────
 const post = async (endpoint, body) => {
