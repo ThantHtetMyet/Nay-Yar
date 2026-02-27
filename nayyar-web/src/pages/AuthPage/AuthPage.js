@@ -67,7 +67,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
             sessionStorage.setItem('user', JSON.stringify(data.user));
 
             // Navigate instantly upon successful login
-            navigate('/', { state: { user: data.user } });
+            window.location.href = '/';
 
         } catch (err) {
             setLoading(false);
