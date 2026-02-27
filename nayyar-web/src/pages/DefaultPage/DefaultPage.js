@@ -296,8 +296,10 @@ const DefaultPage = () => {
         const map = L.map(mapDivRef.current, {
             center: [1.3521, 103.8198],
             zoom: 12,
-            zoomControl: true,
+            zoomControl: false,
         });
+
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
         L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
