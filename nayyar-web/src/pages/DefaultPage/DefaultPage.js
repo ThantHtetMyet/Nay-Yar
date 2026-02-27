@@ -127,6 +127,7 @@ const DefaultPage = () => {
     });
     const isLoggedIn = !!user;
     const isFeedbackAdmin = user?.UserID === 'Thant';
+    const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
 
     const [isLocatingUser, setIsLocatingUser] = useState(false);
 
@@ -998,53 +999,77 @@ const DefaultPage = () => {
                                 : modalView === 'change-password' ? 'Change Password'
                                     : 'Listing Details';
 
+    const handleQuickMenuAction = (action) => () => {
+        setIsQuickMenuOpen(false);
+        action();
+    };
+
     // ── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="default-page-root">
 
-            <div className="dashboard-header">
-                <div className="header-scroll">
-                    <div className="header-menu header-menu-left">
-                    <div className="menu-item-group" onClick={openCreateWithAuthCheck} data-label="Create Post">
-                        <GlassIcon type="create" />
-                        <span className="menu-label">Create Post</span>
-                    </div>
-                    <div className="menu-item-group" onClick={openSearch} data-label="Search">
-                        <GlassIcon type="search" />
-                        <span className="menu-label">Search</span>
-                    </div>
-                    {isLoggedIn ? (
-                        <>
-                            <div className="menu-item-group" onClick={openMyProfile} data-label="Account">
-                                <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
-                                <span className="menu-label">Account</span>
-                            </div>
-                            <div className="menu-item-group" onClick={handleLogout} data-label="Logout">
-                                <GlassIcon type="logout" />
-                                <span className="menu-label">Logout</span>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="menu-item-group" onClick={handleLoginNavigate} data-label="Sign-In">
-                            <GlassIcon type="user" initial="S" />
-                            <span className="menu-label">Sign-In</span>
-                        </div>
-                    )}
-                    </div>
-                    <div className="header-menu header-menu-right">
-                        {isFeedbackAdmin && (
-                            <div className="menu-item-group" onClick={openAdmin} data-label="Admin">
-                                <GlassIcon type="user" initial="A" />
-                                <span className="menu-label">Admin</span>
-                            </div>
-                        )}
-                        <div className="menu-item-group" onClick={openFeedback} data-label="Feedback">
-                            <GlassIcon type="feedback" />
-                            <span className="menu-label">Feedback</span>
+            {isQuickMenuOpen && (
+                <div className="quick-menu-overlay" onClick={() => setIsQuickMenuOpen(false)}>
+                    <div className="quick-menu-panel" onClick={(event) => event.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="quick-menu-close"
+                            onClick={() => setIsQuickMenuOpen(false)}
+                        >
+                            ×
+                        </button>
+                        <div className="quick-menu-grid">
+                            <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(openCreateWithAuthCheck)}>
+                                <GlassIcon type="create" />
+                                <span className="quick-menu-label">Create Post</span>
+                            </button>
+                            <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(openSearch)}>
+                                <GlassIcon type="search" />
+                                <span className="quick-menu-label">Search</span>
+                            </button>
+                            {isLoggedIn ? (
+                                <>
+                                    <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(openMyProfile)}>
+                                        <GlassIcon type="user" initial={user.FullName.charAt(0).toUpperCase()} />
+                                        <span className="quick-menu-label">Account</span>
+                                    </button>
+                                    <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(handleLogout)}>
+                                        <GlassIcon type="logout" />
+                                        <span className="quick-menu-label">Logout</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(handleLoginNavigate)}>
+                                    <GlassIcon type="user" initial="S" />
+                                    <span className="quick-menu-label">Sign-In</span>
+                                </button>
+                            )}
+                            {isFeedbackAdmin && (
+                                <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(openAdmin)}>
+                                    <GlassIcon type="user" initial="A" />
+                                    <span className="quick-menu-label">Admin</span>
+                                </button>
+                            )}
+                            <button type="button" className="quick-menu-item" onClick={handleQuickMenuAction(openFeedback)}>
+                                <GlassIcon type="feedback" />
+                                <span className="quick-menu-label">Feedback</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
+            {!isQuickMenuOpen && (
+                <div className="quick-menu">
+                    <button
+                        type="button"
+                        className="quick-menu-toggle"
+                        onClick={() => setIsQuickMenuOpen((prev) => !prev)}
+                    >
+                        <span className="quick-menu-icon" />
+                        <span className="quick-menu-text">Menu</span>
+                    </button>
+                </div>
+            )}
 
             {/* ── Leaflet Map ── */}
             {/* ── Leaflet Map ── */}
