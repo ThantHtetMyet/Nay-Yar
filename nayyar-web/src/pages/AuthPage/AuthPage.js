@@ -66,6 +66,13 @@ const AuthPage = ({ initialMode = 'login' }) => {
             // Store user in session so it survives refreshes
             sessionStorage.setItem('user', JSON.stringify(data.user));
 
+            // Fix for mobile: Blur active input to hide keyboard and reset scroll
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+
             // Navigate instantly upon successful login
             navigate('/', { replace: true });
 

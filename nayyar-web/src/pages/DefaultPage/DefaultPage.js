@@ -227,38 +227,51 @@ const DefaultPage = () => {
         const updateAppHeight = () => {
             const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             document.documentElement.style.setProperty('--app-height', `${height}px`);
-            
-            // Critical fix for iOS: Force scroll to top to prevent the "jump" or ghost scroll 
-            // that often happens when returning from a page that had a keyboard open.
-            if (window.scrollY !== 0) {
-                window.scrollTo(0, 0);
-            }
-            
+
+            // Aggressive scroll reset for mobile browsers
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+
             if (leafletMapRef.current) {
                 leafletMapRef.current.invalidateSize();
             }
         };
 
         const root = document.documentElement;
+        const body = document.body;
+
         const prevRootHeight = root.style.height;
-        const prevBodyHeight = document.body.style.height;
-        const prevBodyOverflow = document.body.style.overflow;
-        
-        // Ensure root and body don't have conflicting height/overflow during mount
+        const prevRootPos = root.style.position;
+        const prevRootOverflow = root.style.overflow;
+
+        const prevBodyHeight = body.style.height;
+        const prevBodyOverflow = body.style.overflow;
+        const prevBodyPos = body.style.position;
+        const prevBodyWidth = body.style.width;
+
+        // Nuclear option for iOS: Pin body and html to prevent any background scroll "jumps"
         root.style.height = 'var(--app-height, 100dvh)';
-        document.body.style.height = 'var(--app-height, 100dvh)';
-        document.body.style.overflow = 'hidden';
+        root.style.position = 'fixed';
+        root.style.top = '0';
+        root.style.left = '0';
+        root.style.right = '0';
+        root.style.overflow = 'hidden';
+
+        body.style.height = 'var(--app-height, 100dvh)';
+        body.style.overflow = 'hidden';
+        body.style.position = 'fixed';
+        body.style.width = '100%';
+        body.style.top = '0';
 
         updateAppHeight();
-        
-        // Multiple timeouts to catch keyboard closing / browser chrome transitions
+
         const timeouts = [
             setTimeout(updateAppHeight, 50),
             setTimeout(updateAppHeight, 150),
             setTimeout(updateAppHeight, 300),
             setTimeout(updateAppHeight, 600),
             setTimeout(updateAppHeight, 1000),
-            setTimeout(updateAppHeight, 2000), // Catch slow keyboard animations
+            setTimeout(updateAppHeight, 2000),
         ];
 
         const viewport = window.visualViewport;
@@ -267,7 +280,7 @@ const DefaultPage = () => {
         window.addEventListener('pageshow', updateAppHeight);
         window.addEventListener('focus', updateAppHeight);
         document.addEventListener('visibilitychange', updateAppHeight);
-        
+
         if (viewport) {
             viewport.addEventListener('resize', updateAppHeight);
             viewport.addEventListener('scroll', updateAppHeight);
@@ -284,9 +297,15 @@ const DefaultPage = () => {
                 viewport.removeEventListener('scroll', updateAppHeight);
             }
             timeouts.forEach(clearTimeout);
+
             root.style.height = prevRootHeight;
-            document.body.style.height = prevBodyHeight;
-            document.body.style.overflow = prevBodyOverflow;
+            root.style.position = prevRootPos;
+            root.style.overflow = prevRootOverflow;
+
+            body.style.height = prevBodyHeight;
+            body.style.overflow = prevBodyOverflow;
+            body.style.position = prevBodyPos;
+            body.style.width = prevBodyWidth;
         };
     }, []);
 
@@ -874,10 +893,10 @@ const DefaultPage = () => {
                 // console.error('Geolocation error:', err);
                 const isBlocked = err.code === 1;
                 const title = isBlocked ? 'Location Access Denied' : 'Location Error';
-                const message = isBlocked 
-                    ? 'Location access is blocked. Please enable it in your browser settings (click the 🔒 or ⓘ icon in the address bar).' 
+                const message = isBlocked
+                    ? 'Location access is blocked. Please enable it in your browser settings (click the 🔒 or ⓘ icon in the address bar).'
                     : 'Unable to retrieve your location. Check browser permissions.';
-                
+
                 setAppAlert({
                     isOpen: true,
                     type: 'error',
