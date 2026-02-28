@@ -334,8 +334,8 @@
 }
 
 .quick-menu-toggle {
-    width: 52px;
-    height: 52px;
+    width: 60px;
+    height: 60px;
     color: #ffffff !important;
     border-radius: 50%;
     position: relative;
@@ -437,8 +437,8 @@
 
 /* Locate Specific */
 .user-location-btn {
-    width: 54px;
-    height: 54px;
+    width: 60px;
+    height: 60px;
 }
 
 .user-location-btn svg {
@@ -644,10 +644,11 @@
 
 /* Combined Zoom Orb Styling */
 .zoom-combined-orb {
-    width: 54px;
-    height: 54px;
+    width: 60px;
+    height: 60px;
     padding: 0;
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -656,11 +657,10 @@
 
 .zoom-part {
     flex: 1;
-    height: 100%;
     background: transparent;
     border: none;
     color: #ffffff;
-    font-size: 1.15rem;
+    font-size: 1.5rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
@@ -677,7 +677,7 @@
 
 .zoom-divider-line {
     width: 1px;
-    height: 28px;
+    height: 60%;
     background: rgba(255, 255, 255, 0.2);
     flex-shrink: 0;
 }
@@ -1170,7 +1170,8 @@
     }
 
     .zoom-combined-orb {
-        height: 44px;
+        height: 60px;
+        width: 60px;
     }
 
     .zoom-part {
