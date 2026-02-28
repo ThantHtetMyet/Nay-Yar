@@ -1136,45 +1136,33 @@ const DefaultPage = () => {
 
                 {/* ── NEW BOTTOM CONTROLS ROW ── */}
                 <div className="bottom-controls-bar">
-                    {/* LEFT: Combined Zoom Control */}
+                    <button
+                        className={`premium-orb-btn user-location-btn ${isLocatingUser ? 'locating' : ''}`}
+                        onClick={handleGetUserLocation}
+                        aria-label="Find my location"
+                    >
+                        {isLocatingUser ? (
+                            <div className="btn-spinner"></div>
+                        ) : (
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                        )}
+                    </button>
+                    <button
+                        type="button"
+                        className={`premium-orb-btn quick-menu-toggle ${isQuickMenuOpen ? 'is-hidden' : ''}`}
+                        onClick={() => setIsQuickMenuOpen((prev) => !prev)}
+                    >
+                        <span className="quick-menu-text">Menu</span>
+                    </button>
                     <div className="zoom-controls-combined">
                         <div className="premium-orb-btn zoom-combined-orb">
                             <button type="button" className="zoom-part" onClick={handleZoomIn} aria-label="Zoom In">+</button>
                             <div className="zoom-divider-line"></div>
                             <button type="button" className="zoom-part" onClick={handleZoomOut} aria-label="Zoom Out">−</button>
                         </div>
-                    </div>
-
-                    {/* CENTER: Menu Toggle */}
-                    {!isQuickMenuOpen && (
-                        <div className="quick-menu-center">
-                            <button
-                                type="button"
-                                className="premium-orb-btn quick-menu-toggle"
-                                onClick={() => setIsQuickMenuOpen((prev) => !prev)}
-                            >
-                                <span className="quick-menu-icon" />
-                                <span className="quick-menu-text" style={{ color: '#ffffff' }}>Menu</span>
-                            </button>
-                        </div>
-                    )}
-
-                    {/* RIGHT: Locate Button */}
-                    <div className="locate-control-right">
-                        <button
-                            className={`premium-orb-btn user-location-btn ${isLocatingUser ? 'locating' : ''}`}
-                            onClick={handleGetUserLocation}
-                            aria-label="Find my location"
-                        >
-                            {isLocatingUser ? (
-                                <div className="btn-spinner"></div>
-                            ) : (
-                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                                    <circle cx="12" cy="10" r="3" />
-                                </svg>
-                            )}
-                        </button>
                     </div>
                 </div>
             </div>

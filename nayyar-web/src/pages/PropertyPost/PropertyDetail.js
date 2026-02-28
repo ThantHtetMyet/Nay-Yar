@@ -92,19 +92,53 @@ const PropertyDetail = ({ propertyID, user, onEdit, onBack, onDeleted }) => {
     }[val] || val);
 
     const openWhatsApp = (room = null, specificPhone = null) => {
-        // Strip out any multiple phones and pick the either the specific one or the first one
-        const selectedPhone = specificPhone || listing.ContactPhone?.split(',')[0].trim();
-        const phone = selectedPhone?.replace(/\D/g, '');
-        if (!phone) {
-            setErrorMsg('No contact phone number provided for this listing.');
+        // 1. Extract the raw phone number
+        let rawPhone = (specificPhone || listing.ContactPhone?.split(',')[0] || '').trim();
+        if (!rawPhone) {
+            setErrorMsg('No contact phone number provided.');
+            return;
+        }
+
+        // 2. Clean digits
+        let phone = rawPhone.replace(/\D/g, '');
+
+        // 3. Handle local-to-international conversion (Focusing on Myanmar & Singapore)
+        const country = (listing.Country || '').toLowerCase();
+
+        // Remove leading 0 if present (trunk prefix)
+        if (phone.startsWith('0')) {
+            phone = phone.substring(1);
+
+            // Prepend country code based on detected country
+            if (country.includes('myanmar') || country.includes('burma')) {
+                phone = '95' + phone;
+            } else if (country.includes('singapore')) {
+                phone = '65' + phone;
+            } else if (country.includes('thailand')) {
+                phone = '66' + phone;
+            } else if (country.includes('malaysia')) {
+                phone = '60' + phone;
+            }
+        }
+        // If no leading 0 but likely missing country code (e.g. 8-digit SG or 9/10-digit MM)
+        else if (phone.length >= 8 && phone.length <= 11) {
+            if (country.includes('singapore') && phone.length === 8) {
+                phone = '65' + phone;
+            } else if ((country.includes('myanmar') || country.includes('burma')) && !phone.startsWith('95')) {
+                phone = '95' + phone;
+            }
+        }
+
+        if (phone.length < 7) {
+            setErrorMsg('The phone number seems too short or invalid.');
             return;
         }
 
         const ltName = getLTName(listing.ListingType);
         const ptName = getPTName(listing.PropertyType);
-        const location = `${listing.Address || listing.City}, ${listing.Country}`;
+        const locationStr = `${listing.Address || listing.City || ''}, ${listing.Country || ''}`.replace(/^,\s*/, '');
 
-        let message = `Hi, I saw your listing on Nay-Yar:\n\n*${ltName} - ${ptName}*\n📍 ${location}`;
+        let message = `Hi, I saw your listing on Nay-Yar:\n\n*${ltName} - ${ptName}*\n📍 ${locationStr}`;
 
         if (room) {
             message += `\n🏠 *Unit:* ${room.Label}\n💰 *Price:* ${listing.Currency} ${room.Price}/${listing.RentTerm}`;
@@ -114,8 +148,13 @@ const PropertyDetail = ({ propertyID, user, onEdit, onBack, onDeleted }) => {
 
         message += `\n\nIs this still available?`;
 
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        // Using api.whatsapp.com for broader device compatibility
+        const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+
+        // Open link
         window.open(url, '_blank');
+
+        // Reset state
         setShowWaPicker(false);
         setSelectedPhoneForWa(null);
         setSelectedRoom(null);

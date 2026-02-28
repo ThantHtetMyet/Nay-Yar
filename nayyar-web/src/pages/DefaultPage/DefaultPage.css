@@ -316,13 +316,14 @@
 .bottom-controls-bar {
     position: absolute;
     bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 0;
-    right: 0;
-    padding: 0 20px;
+    left: 16px;
+    padding: 0;
     z-index: 2000;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
+    gap: 12px;
     pointer-events: none;
     /* Let clicks pass to map if not on buttons */
 }
@@ -332,13 +333,39 @@
     /* Re-enable clicks for button groups */
 }
 
+.quick-menu-toggle {
+    width: 52px;
+    height: 52px;
+    color: #ffffff !important;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.quick-menu-toggle.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.quick-menu-toggle:active {
+    transform: scale(0.92);
+}
+
 /* Base style for all map orb buttons */
 .premium-orb-btn {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(15, 23, 42, 0.88);
     color: #f8fafc;
     border-radius: 999px;
     border: none;
@@ -353,19 +380,18 @@
 .premium-orb-btn::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200px;
-    height: 200px;
-    transform: translate(-50%, -50%);
-    background: conic-gradient(from 0deg,
-            #22d3ee,
-            #a855f7,
-            #f43f5e,
-            #f59e0b,
-            #22c55e,
-            #22d3ee);
-    animation: rotate-border 4s linear infinite;
+    inset: -2px;
+    border-radius: inherit;
+    background: conic-gradient(
+        from 0deg,
+        #22d3ee,
+        #a855f7,
+        #f43f5e,
+        #f59e0b,
+        #22c55e,
+        #22d3ee
+    );
+    animation: rotate-border 6s linear infinite;
     z-index: 0;
 }
 
@@ -373,12 +399,12 @@
     content: '';
     position: absolute;
     inset: 2px;
-    background: rgba(15, 23, 42, 0.95);
     border-radius: inherit;
+    background: rgba(15, 23, 42, 0.88);
     z-index: 1;
 }
 
-.premium-orb-btn>* {
+.premium-orb-btn > * {
     position: relative;
     z-index: 2;
 }
@@ -389,18 +415,16 @@
 
 @keyframes rotate-border {
     from {
-        transform: translate(-50%, -50%) rotate(0deg);
+        transform: rotate(0deg);
     }
 
     to {
-        transform: translate(-50%, -50%) rotate(360deg);
+        transform: rotate(360deg);
     }
 }
 
 /* Zoom Combined Specific Coverage */
 .zoom-combined-orb::before {
-    width: 300px;
-    height: 300px;
 }
 
 /* Menu Specific */
@@ -413,41 +437,14 @@
 
 /* Locate Specific */
 .user-location-btn {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
 }
 
 .user-location-btn svg {
     display: block;
 }
 
-.quick-menu-icon {
-    width: 22px;
-    height: 3px;
-    background: #f8fafc;
-    border-radius: 999px;
-    position: relative;
-    display: inline-block;
-}
-
-.quick-menu-icon::before,
-.quick-menu-icon::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    width: 22px;
-    height: 3px;
-    background: #f8fafc;
-    border-radius: 999px;
-}
-
-.quick-menu-icon::before {
-    top: -8px;
-}
-
-.quick-menu-icon::after {
-    top: 8px;
-}
 
 .quick-menu-panel {
     width: min(290px, 85vw);
@@ -647,11 +644,14 @@
 
 /* Combined Zoom Orb Styling */
 .zoom-combined-orb {
-    height: 52px;
+    width: 54px;
+    height: 54px;
     padding: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     overflow: hidden;
+    border-radius: 999px;
 }
 
 .zoom-part {
@@ -660,13 +660,13 @@
     background: transparent;
     border: none;
     color: #ffffff;
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 18px;
+    padding: 0;
     transition: background 0.2s ease;
     -webkit-tap-highlight-color: transparent;
 }
@@ -677,22 +677,13 @@
 
 .zoom-divider-line {
     width: 1px;
-    height: 24px;
+    height: 28px;
     background: rgba(255, 255, 255, 0.2);
     flex-shrink: 0;
 }
 
 /* Ensure locate button icons are white */
-.user-location-btn {
-    width: 52px;
-    height: 52px;
-    color: #ffffff !important;
-}
 
-.user-location-btn svg {
-    display: block;
-    stroke: #ffffff !important;
-}
 
 /* Explicitly hide native Leaflet zoom to prevent background leakage */
 .leaflet-control-zoom,
@@ -829,31 +820,29 @@
 }
 
 .user-location-btn {
-    width: 48px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 14px;
+    width: 52px;
+    height: 52px;
+    color: #ffffff !important;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #4e80f0;
-    cursor: pointer;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.user-location-btn:hover {
-    transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.95);
-    color: #2563eb;
-    box-shadow: 0 12px 40px rgba(78, 128, 240, 0.3);
+.user-location-btn svg {
+    display: block;
+    stroke: #ffffff !important;
 }
 
 .user-location-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
 }
 
 /* Spinner for Locating State */
