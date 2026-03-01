@@ -1,0 +1,25 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260228211355
+Username: LAPTOP-E71G66UV\asus
+RunAs User: LAPTOP-E71G66UV\asus
+Configuration Name: 
+Machine: LAPTOP-E71G66UV (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -c Start-Transcript -Path gradle_build_transcript.txt
+Process ID: 17572
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is gradle_build_transcript.txt
+PS>$global:?
+True
+**********************
+Windows PowerShell transcript end
+End time: 20260228211355
+**********************
